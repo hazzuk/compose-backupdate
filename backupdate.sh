@@ -25,56 +25,96 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-
 # user variables
-backup_dir="/home/user/backup/temp"
-docker_dir="/home/user/docker"
-stack_name="outline"
+backup_dir=${BACKUP_DIR:-"/home/user/backup/temp"}
+docker_dir=${DOCKER_DIR:-"/home/user/docker"}
+stack_name="alpine"
 
-# global variables
+# script variables
 timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
-stack_dir="$docker_dir/$stack_name"
+working_dir="$docker_dir/$stack_name"
+stack_running=false
 
-# create backup directory
-mkdir -p "$backup_dir"
+main() {
+    echo "compose-backupdate $timestamp"
+    echo "backup directory: $backup_dir"
+    echo -e "working directory: $working_dir\n..."
 
+    # create backup directory
+    mkdir -p "$backup_dir" || { echo "Error, failed to create backup directory $backup_dir"; exit 1; }
 
-backup_directory() {
-    local stack=$1 # e.g. 'outline'
-    local path=$2 # e.g. '/home/user/docker/outline'
+    # stop stack before backup
+    docker_stack_stop
 
-    echo "Stop docker stack: $stack"
-    cd "$path" || exit
-    if docker compose ps --filter "status=running" | grep -q "$stack"; then
+    # backup compose stack working directory
+    backup_working_dir
+
+    # backup docker volumes
+    backup_stack_volumes
+
+    # start stack again if previously running
+    docker_stack_start
+}
+
+docker_stack_stop() {
+    echo "Stopping docker stack: <$stack_name>"
+    cd "$working_dir" || exit
+    if docker compose ps --filter "status=running" | grep -q "$stack_name"; then
+        stack_running=true
         docker compose stop
     else
-        echo "Docker stack $stack not running, skip stop"
+        echo "Docker stack <$stack_name> not running, skipping compose stop"
+    fi
+    echo ...
+}
+
+docker_stack_start() {
+    if [ "$stack_running" = true ]; then
+        echo "Starting docker stack: <$stack_name>"
+        cd "$working_dir" || exit
+        docker compose up -d
+    else
+        echo "Docker stack <$stack_name> was previously not running, skipping compose start"
+    fi
+    echo ...
+}
+
+backup_working_dir() {
+    echo "Backing up <$stack_name> directory: $working_dir"
+    tar -czf "$backup_dir/$stack_name-$timestamp.tar.gz" -C "$working_dir" .
+}
+
+backup_stack_volumes() {
+    # get all stack volumes
+    local stack_volumes
+    stack_volumes=$(
+        docker volume ls --filter "label=com.docker.compose.project=$stack_name" --format "{{.Name}}"
+    )
+
+    # check volumes found
+    if [ -z "$stack_volumes" ]; then
+        echo "Info, no volumes found for <$stack_name>"
+        return 1
     fi
 
-    echo "Backup stack directory: $path"
-    tar -czf "$backup_dir/$stack-$timestamp.tar.gz" -C "$path" .
+    # backup each volume
+    for volume_name in $stack_volumes; do
+        backup_volume "$volume_name"
+    done
+    echo ...
 }
 
 backup_volume() {
-    local volume=$1 # e.g. 'outline_database-data'
-    local container=$2 # e.g. 'outline-postgres-1'
-    local mount=$3 # e.g. '/var/lib/postgresql/data'
-
-    echo "Backup docker volume: $container $volume"
+    local volume_name=$1
+    echo "Backing up <$stack_name> volume: <$volume_name>"
+    
+    # backup volume data with temporary container
     docker run --rm \
-        --volumes-from "$container" \
+        -v "$volume_name":/volume_data \
         -v "$backup_dir":/backup \
-        busybox tar czf "/backup/$volume-$timestamp.tar.gz" "$mount"
+        busybox tar czf "/backup/$volume_name-$timestamp.tar.gz" -C /volume_data . || \
+        { echo "Error, failed to create backup container"; exit 1; }
 }
 
-
-# main backup
-backup_directory "$stack_name" "$stack_dir"
-
-# user volume backups
-backup_volume 'outline_storage-data' 'outline-outline-1' '/var/lib/outline/data'
-backup_volume 'outline_database-data' 'outline-postgres-1' '/var/lib/postgresql/data'
-
-# temporary fix to restart stack
-cd "$stack_dir" || exit
-docker compose up -d
+# run script
+main
