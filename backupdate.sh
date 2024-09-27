@@ -21,14 +21,15 @@ set -e
 
 # check if running as root
 if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root"
+    echo "Error, please run as root"
     exit 1
 fi
 
 # user variables
-backup_dir=${BACKUP_DIR:-"/home/user/backup/temp"}
+# (can be overridden by env variables or script arguments)
+backup_dir=${BACKUP_DIR:-"/home/user/backup"}
 docker_dir=${DOCKER_DIR:-"/home/user/docker"}
-stack_name="alpine"
+stack_name=${STACK_NAME:-"nginx"}
 
 # script variables
 timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
@@ -54,6 +55,35 @@ main() {
 
     # start stack again if previously running
     docker_stack_start
+}
+
+usage() {
+    echo "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name]"
+    exit 1
+}
+
+parse_args() {
+    while getopts ":b:d:s:" opt; do
+        case $opt in
+            b)
+                backup_dir="$OPTARG"
+                ;;
+            d)
+                docker_dir="$OPTARG"
+                ;;
+            s)
+                stack_name="$OPTARG"
+                ;;
+            \?)
+                echo "Invalid option: -$OPTARG" >&2
+                usage
+                ;;
+            :)
+                echo "Option -$OPTARG requires an argument." >&2
+                usage
+                ;;
+        esac
+    done
 }
 
 docker_stack_stop() {
@@ -117,4 +147,5 @@ backup_volume() {
 }
 
 # run script
+parse_args "$@"
 main
