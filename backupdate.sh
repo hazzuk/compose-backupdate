@@ -52,7 +52,7 @@ main() {
     docker_stack_stop
 
     # backup compose stack working directory
-    echo "(backup)"
+    echo "(backups)"
     backup_working_dir
 
     # backup docker volumes
@@ -61,7 +61,7 @@ main() {
     if [ "$update_requested" = true ]; then
 
         # print stack changelog url
-        echo "(update)"
+        echo "(updates)"
         print_changelog_url
 
         # update compose stack
@@ -133,24 +133,24 @@ verify_config() {
 }
 
 docker_stack_stop() {
-    echo "Stopping docker stack: <$stack_name>"
+    echo "Stopping Docker stack: <$stack_name>"
     cd "$working_dir" || exit
     if docker compose ps --filter "status=running" | grep -q "$stack_name"; then
         stack_running=true
         docker compose stop
     else
-        echo "Docker stack <$stack_name> not running, skipping compose stop"
+        echo "- Docker stack <$stack_name> not running, skipping compose stop"
     fi
     echo ...
 }
 
 docker_stack_start() {
     if [ "$stack_running" = true ]; then
-        echo "Restarting docker stack: <$stack_name>"
+        echo "Restarting Docker stack: <$stack_name>"
         cd "$working_dir" || exit
         docker compose up -d
     else
-        echo "Docker stack <$stack_name> was previously not running, skipping compose start"
+        echo "- Docker stack <$stack_name> not previously running, skipping compose up"
     fi
     echo ...
 }
@@ -177,17 +177,16 @@ docker_stack_update() {
     read -p "Are you sure you want to update <$stack_name>? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "Updating stack..."
+        echo "Updating Docker stack..."
         docker compose pull
-        echo "Stack pulled"
     else
-        echo "Update canceled"
+        echo "- Update canceled"
     fi
     echo ...
 }
 
 backup_working_dir() {
-    echo "Backing up <$stack_name> directory: $working_dir"
+    echo "Backup <$stack_name> directory: $working_dir"
     tar -czf "$backup_dir/$stack_name-$timestamp.tar.gz" -C "$working_dir" .
     echo "- Directory backup complete"
 }
@@ -230,7 +229,7 @@ print_changelog_url() {
 
     # check changelog.url exists
     if [[ -f "$changelog_file" ]]; then
-        echo "Link to <$stack_name> changelog: "
+        echo "Link to read the <$stack_name> changelog: "
         cat "$changelog_file"
     else
         # ask user to create changelog.url
@@ -240,9 +239,9 @@ print_changelog_url() {
         if [[ $user_input == http* ]]; then
             # create changelog.url with user input
             echo "$user_input" > "$changelog_file"
-            echo "$changelog_file created"
+            echo "- $changelog_file created"
         else
-            echo "No valid URL provided. Continuing without reading the <$stack_name> changelog"
+            echo "- No valid URL provided. Continuing without the <$stack_name> changelog"
         fi
     fi
     echo ...
