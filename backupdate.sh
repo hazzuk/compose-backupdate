@@ -27,25 +27,24 @@ fi
 
 # user variables
 # (can be overridden by env variables or script arguments)
-backup_dir=${BACKUP_DIR:-"/home/user/backup"}
-docker_dir=${DOCKER_DIR:-"/home/user/docker"}
-stack_name=${STACK_NAME:-"nginx"}
+backup_dir=${BACKUP_DIR:-"null"} # -b "/opt/backup"
+docker_dir=${DOCKER_DIR:-"null"} # -d "/opt/docker"
+stack_name=${STACK_NAME:-"null"} # -s "nginx"
+update_requested=false           # -u
 
 # script variables
 timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
-working_dir="null"
 stack_running=false
-update_requested=false
+working_dir="null"
 
 main() {
     # check current directory for compose file
     docker_stack_dir
 
-    # echo script config
-    echo "compose-backupdate $timestamp"
-    echo "backup_dir: $backup_dir"
-    echo -e "working_dir: $working_dir\n..."
+    # check script variables before continuing
+    verify_config
 
+    # (backup)
     # create backup directory
     mkdir -p "$backup_dir" || { echo "Error, failed to create backup directory $backup_dir"; exit 1; }
 
@@ -58,6 +57,7 @@ main() {
     # backup docker volumes
     backup_stack_volumes
 
+    # (update)
     if [ "$update_requested" = true ]; then
         # print stack changelog url
         print_changelog_url
@@ -100,6 +100,30 @@ parse_args() {
                 ;;
         esac
     done
+}
+
+verify_config() {
+    # check script variables
+    if [ "$backup_dir" = "null" ]; then
+        echo "Error, backup_dir not provided"
+        usage
+    fi
+    if [ "$docker_dir" = "null" ]; then
+        echo "Error, docker_dir not provided"
+        usage
+    fi
+    if [ "$stack_name" = "null" ]; then
+        echo "Error, stack_name not provided"
+        usage
+    fi
+    if [ "$working_dir" = "null" ]; then
+        echo "Error, working_dir not set"
+        exit 1
+    fi
+    # echo script config
+    echo "compose-backupdate $timestamp"
+    echo "backup_dir: $backup_dir"
+    echo -e "working_dir: $working_dir\n..."
 }
 
 docker_stack_stop() {
