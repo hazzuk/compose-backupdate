@@ -19,6 +19,7 @@ bash -c 'curl -fsSL -o /bin/backupdate https://raw.githubusercontent.com/hazzuk/
 ```
 
 ### Expected compose directory structure
+The script expects your docker compose working directory to be located in `$docker_dir/$stack_name`:
 ```
 docker/
 ├─ nginx/
@@ -36,12 +37,17 @@ docker/
 backupdate
 ```
 
-### Run script with arguments
+### Run script with options
 `-b`: desired backup directory \
 `-d`: docker compose collection directory \
 `-s`: docker compose stack name
 ```bash
 backupdate -b "/path/to/your/backup" -d "/path/to/your/docker" -s "nginx"
+```
+```bash
+backupdate -s "nginx" \
+	-b "/very/long/path/to/the/backup" \
+	-d "/very/long/path/to/docker"
 ```
 
 ### Alternatively configure with environment variables
