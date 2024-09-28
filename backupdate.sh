@@ -108,7 +108,7 @@ verify_config() {
         echo "Error, backup_dir not provided"
         usage
     fi
-    if [ "$docker_dir" = "null" ]; then
+    if [ "$working_dir" = "null/$stack_name" ]; then
         echo "Error, docker_dir not provided"
         usage
     fi
