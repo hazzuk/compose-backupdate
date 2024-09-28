@@ -33,10 +33,12 @@ stack_name=${STACK_NAME:-"nginx"}
 
 # script variables
 timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
-working_dir="$docker_dir/$stack_name"
+working_dir="null"
 stack_running=false
 
 main() {
+    # echo script variables
+    working_dir="$docker_dir/$stack_name"
     echo "compose-backupdate $timestamp"
     echo "backup directory: $backup_dir"
     echo -e "working directory: $working_dir\n..."
