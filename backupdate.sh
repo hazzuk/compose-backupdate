@@ -82,7 +82,7 @@ usage() {
 }
 
 parse_args() {
-    while getopts ":b:d:s:u:" opt; do
+    while getopts ":b:d:s:u" opt; do
         case $opt in
             b)
                 backup_dir="$OPTARG"
