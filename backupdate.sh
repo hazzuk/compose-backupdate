@@ -42,7 +42,6 @@ main() {
     docker_stack_dir
 
     # echo script config
-    working_dir="$docker_dir/$stack_name"
     echo "compose-backupdate $timestamp"
     echo "backup directory: $backup_dir"
     echo -e "working directory: $working_dir\n..."
@@ -137,10 +136,13 @@ docker_stack_dir() {
 
             # update working_dir to current directory
             working_dir="$(pwd)"
-            echo "working_dir is now set to: $docker_dir"
+            echo "'$'working_dir is now set to: $docker_dir"
+            echo ...
+            return 0
         fi
     done
-    echo ...
+    # update working_dir with passed options
+    working_dir="$docker_dir/$stack_name"
 }
 
 docker_stack_update() {
