@@ -43,8 +43,8 @@ main() {
 
     # echo script config
     echo "compose-backupdate $timestamp"
-    echo "backup directory: $backup_dir"
-    echo -e "working directory: $working_dir\n..."
+    echo "backup_dir: $backup_dir"
+    echo -e "working_dir: $working_dir\n..."
 
     # create backup directory
     mkdir -p "$backup_dir" || { echo "Error, failed to create backup directory $backup_dir"; exit 1; }
@@ -95,7 +95,7 @@ parse_args() {
                 usage
                 ;;
             :)
-                echo "Option -$OPTARG requires an argument." >&2
+                echo "Option -$OPTARG requires an argument" >&2
                 usage
                 ;;
         esac
@@ -132,12 +132,10 @@ docker_stack_dir() {
     # check current directory for compose file
     for file in "${compose_files[@]}"; do
         if [[ -f "$file" ]]; then
-            echo "Docker Compose file ($file) found in the current directory."
-
-            # update working_dir to current directory
+            # update working_dir and stack_name to current directory
             working_dir="$(pwd)"
-            echo "'$'working_dir is now set to: $docker_dir"
-            echo ...
+            stack_name=$(basename "$PWD")
+            echo -e "$file found in current directory for <$stack_name>\n..."
             return 0
         fi
     done
@@ -151,9 +149,9 @@ docker_stack_update() {
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "Updating stack..."
         docker compose pull
-        echo "Stack pulled."
+        echo "Stack pulled"
     else
-        echo "Update canceled."
+        echo "Update canceled"
     fi
     echo ...
 }
