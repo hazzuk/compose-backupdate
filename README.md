@@ -33,14 +33,18 @@ docker/
 ## Usage
 
 ### Run script
+> [!TIP]
+> You can run the command inside your docker compose working directory (won't require `-d` or `-s`).
+
 ```bash
-backupdate
+backupdate -u -b "/path/to/your/backup"
 ```
 
 ### Run script with options
 `-b`: desired backup directory \
 `-d`: docker compose collection directory \
-`-s`: docker compose stack name
+`-s`: docker compose stack name \
+`-u`: update docker stack (optional)
 ```bash
 backupdate -b "/path/to/your/backup" -d "/path/to/your/docker" -s "nginx"
 ```
