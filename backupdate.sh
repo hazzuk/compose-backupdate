@@ -68,6 +68,9 @@ main() {
 
     # start stack again if previously running
     docker_stack_start
+
+    echo "backupdate complete!"
+    exit 0
 }
 
 usage() {
@@ -121,9 +124,9 @@ verify_config() {
         exit 1
     fi
     # echo script config
-    echo "compose-backupdate $timestamp"
-    echo "backup_dir: $backup_dir"
-    echo -e "working_dir: $working_dir\n..."
+    echo "compose-backupdate <$stack_name> $timestamp"
+    echo "- backup_dir: $backup_dir"
+    echo -e "- working_dir: $working_dir\n..."
 }
 
 docker_stack_stop() {
@@ -140,7 +143,7 @@ docker_stack_stop() {
 
 docker_stack_start() {
     if [ "$stack_running" = true ]; then
-        echo "Starting docker stack: <$stack_name>"
+        echo "Restarting docker stack: <$stack_name>"
         cd "$working_dir" || exit
         docker compose up -d
     else
@@ -159,7 +162,7 @@ docker_stack_dir() {
             # update working_dir and stack_name to current directory
             working_dir="$(pwd)"
             stack_name=$(basename "$PWD")
-            echo -e "$file found in current directory for <$stack_name>\n..."
+            echo -e "Found <$stack_name> $file in current directory\n..."
             return 0
         fi
     done
@@ -183,6 +186,7 @@ docker_stack_update() {
 backup_working_dir() {
     echo "Backing up <$stack_name> directory: $working_dir"
     tar -czf "$backup_dir/$stack_name-$timestamp.tar.gz" -C "$working_dir" .
+    echo "Directory backup complete"
 }
 
 backup_stack_volumes() {
@@ -207,7 +211,7 @@ backup_stack_volumes() {
 
 backup_volume() {
     local volume_name=$1
-    echo "Backing up <$stack_name> volume: <$volume_name>"
+    echo "Backup <$stack_name> volume: <$volume_name>"
     
     # backup volume data with temporary container
     docker run --rm \
@@ -215,6 +219,7 @@ backup_volume() {
         -v "$backup_dir":/backup \
         busybox tar czf "/backup/$volume_name-$timestamp.tar.gz" -C /volume_data . || \
         { echo "Error, failed to create backup container"; exit 1; }
+    echo "Volume backup complete"
 }
 
 print_changelog_url() {
