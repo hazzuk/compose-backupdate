@@ -21,7 +21,7 @@ set -e
 
 # check if running as root
 if [ "$EUID" -ne 0 ]; then
-    echo "Error, please run as root"
+    echo "Error, please run as root!"
     exit 1
 fi
 
@@ -44,22 +44,24 @@ main() {
     # check script variables before continuing
     verify_config
 
-    # (backup)
     # create backup directory
-    mkdir -p "$backup_dir" || { echo "Error, failed to create backup directory $backup_dir"; exit 1; }
+    mkdir -p "$backup_dir" || { echo "Error, failed to create backup directory $backup_dir!"; exit 1; }
 
     # stop stack before backup
+    echo "(stop)"
     docker_stack_stop
 
     # backup compose stack working directory
+    echo "(backup)"
     backup_working_dir
 
     # backup docker volumes
     backup_stack_volumes
 
-    # (update)
     if [ "$update_requested" = true ]; then
+
         # print stack changelog url
+        echo "(update)"
         print_changelog_url
 
         # update compose stack
@@ -67,9 +69,10 @@ main() {
     fi
 
     # start stack again if previously running
+    echo "(resume)"
     docker_stack_start
 
-    echo "backupdate complete!"
+    echo -e "backupdate complete!\n "
     exit 0
 }
 
@@ -108,19 +111,19 @@ parse_args() {
 verify_config() {
     # check script variables
     if [ "$backup_dir" = "null" ]; then
-        echo "Error, backup_dir not provided"
+        echo "Error, backup_dir not provided!"
         usage
     fi
     if [ "$working_dir" = "null/$stack_name" ]; then
-        echo "Error, docker_dir not provided"
+        echo "Error, docker_dir not provided!"
         usage
     fi
     if [ "$stack_name" = "null" ]; then
-        echo "Error, stack_name not provided"
+        echo "Error, stack_name not provided!"
         usage
     fi
     if [ "$working_dir" = "null" ]; then
-        echo "Error, working_dir not set"
+        echo "Error, working_dir not set!"
         exit 1
     fi
     # echo script config
@@ -186,7 +189,7 @@ docker_stack_update() {
 backup_working_dir() {
     echo "Backing up <$stack_name> directory: $working_dir"
     tar -czf "$backup_dir/$stack_name-$timestamp.tar.gz" -C "$working_dir" .
-    echo "Directory backup complete"
+    echo "- Directory backup complete"
 }
 
 backup_stack_volumes() {
@@ -218,8 +221,8 @@ backup_volume() {
         -v "$volume_name":/volume_data \
         -v "$backup_dir":/backup \
         busybox tar czf "/backup/$volume_name-$timestamp.tar.gz" -C /volume_data . || \
-        { echo "Error, failed to create backup container"; exit 1; }
-    echo "Volume backup complete"
+        { echo "Error, failed to create backup container!"; exit 1; }
+    echo "- Volume backup complete"
 }
 
 print_changelog_url() {
