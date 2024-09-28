@@ -35,9 +35,13 @@ stack_name=${STACK_NAME:-"nginx"}
 timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
 working_dir="null"
 stack_running=false
+update_requested=false
 
 main() {
-    # echo script variables
+    # check current directory for compose file
+    docker_stack_dir
+
+    # echo script config
     working_dir="$docker_dir/$stack_name"
     echo "compose-backupdate $timestamp"
     echo "backup directory: $backup_dir"
@@ -55,6 +59,14 @@ main() {
     # backup docker volumes
     backup_stack_volumes
 
+    if [ "$update_requested" = true ]; then
+        # print stack changelog url
+        print_changelog_url
+
+        # update compose stack
+        docker_stack_update
+    fi
+
     # start stack again if previously running
     docker_stack_start
 }
@@ -65,7 +77,7 @@ usage() {
 }
 
 parse_args() {
-    while getopts ":b:d:s:" opt; do
+    while getopts ":b:d:s:u:" opt; do
         case $opt in
             b)
                 backup_dir="$OPTARG"
@@ -75,6 +87,9 @@ parse_args() {
                 ;;
             s)
                 stack_name="$OPTARG"
+                ;;
+            u)
+                update_requested=true
                 ;;
             \?)
                 echo "Invalid option: -$OPTARG" >&2
@@ -107,6 +122,36 @@ docker_stack_start() {
         docker compose up -d
     else
         echo "Docker stack <$stack_name> was previously not running, skipping compose start"
+    fi
+    echo ...
+}
+
+docker_stack_dir() {
+    # possible compose file names
+    local compose_files=("compose.yaml" "compose.yml" "docker-compose.yaml" "docker-compose.yml")
+
+    # check current directory for compose file
+    for file in "${compose_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            echo "Docker Compose file ($file) found in the current directory."
+
+            # update working_dir to current directory
+            working_dir="$(pwd)"
+            echo "working_dir is now set to: $docker_dir"
+        fi
+    done
+    echo ...
+}
+
+docker_stack_update() {
+    read -p "Are you sure you want to update <$stack_name>? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "Updating stack..."
+        docker compose pull
+        echo "Stack pulled."
+    else
+        echo "Update canceled."
     fi
     echo ...
 }
@@ -146,6 +191,29 @@ backup_volume() {
         -v "$backup_dir":/backup \
         busybox tar czf "/backup/$volume_name-$timestamp.tar.gz" -C /volume_data . || \
         { echo "Error, failed to create backup container"; exit 1; }
+}
+
+print_changelog_url() {
+    local changelog_file="$working_dir/changelog.url"
+
+    # check changelog.url exists
+    if [[ -f "$changelog_file" ]]; then
+        echo "Link to <$stack_name> changelog: "
+        cat "$changelog_file"
+    else
+        # ask user to create changelog.url
+        echo "File $changelog_file does not exist"
+        read -r -p "Please provide a URL (or press Enter to continue without): " user_input
+
+        if [[ $user_input == http* ]]; then
+            # create changelog.url with user input
+            echo "$user_input" > "$changelog_file"
+            echo "$changelog_file created"
+        else
+            echo "No valid URL provided. Continuing without reading the <$stack_name> changelog"
+        fi
+    fi
+    echo ...
 }
 
 # run script
