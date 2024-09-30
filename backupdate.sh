@@ -1,4 +1,5 @@
 #!/bin/bash
+version="0.1.0"
 
 # Copyright (c) 2024 hazzuk. All rights reserved.
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -132,6 +133,30 @@ verify_config() {
     echo -e "- working_dir: $working_dir\n "
 }
 
+check_for_update() {
+    local repo="hazzuk/compose-backupdate"
+    local raw_url="https://raw.githubusercontent.com/$repo/refs/heads/main/backupdate.sh"
+    local latest_version_line
+    local latest_version
+
+    # fetch second line (version="X.Y.Z") from the script hosted on github
+    latest_version_line=$(curl -s "$raw_url" | sed -n '2p')
+    # extract version from the fetched line
+    latest_version=$(echo "$latest_version_line" | grep -oP '(?<=version=")[^"]+')
+
+    if [[ $latest_version == "" ]]; then
+        echo "Warn, could not check for updates"
+        return 0
+    fi
+
+    # compare local version with the latest version
+    if [[ "$version" != "$latest_version" ]]; then
+        echo "A new version v$latest_version is available! You are using v$version"
+    else
+        echo "Running backupdate v$version"
+    fi
+}
+
 docker_stack_stop() {
     echo "Stopping Docker stack: <$stack_name>"
     cd "$working_dir" || exit
@@ -217,7 +242,7 @@ backup_stack_volumes() {
     # check volumes found
     if [ -z "$stack_volumes" ]; then
         echo "Info, no volumes found for <$stack_name>"
-        return 1
+        return 0
     fi
 
     # backup each volume
@@ -264,5 +289,6 @@ print_changelog_url() {
 }
 
 # run script
+check_for_update
 parse_args "$@"
 main
