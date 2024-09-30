@@ -141,7 +141,7 @@ docker_stack_stop() {
     else
         echo "- Docker stack <$stack_name> not running, skipping compose stop"
     fi
-    echo ...
+    echo
 }
 
 docker_stack_start() {
@@ -152,7 +152,7 @@ docker_stack_start() {
     else
         echo "- Docker stack <$stack_name> not previously running, skipping compose up"
     fi
-    echo ...
+    echo
 }
 
 docker_stack_dir() {
@@ -182,7 +182,7 @@ docker_stack_update() {
     else
         echo "- Update canceled"
     fi
-    echo ...
+    echo
 }
 
 backup_working_dir() {
@@ -208,7 +208,7 @@ backup_stack_volumes() {
     for volume_name in $stack_volumes; do
         backup_volume "$volume_name"
     done
-    echo ...
+    echo
 }
 
 backup_volume() {
@@ -244,7 +244,7 @@ print_changelog_url() {
             echo "- No valid URL provided. Continuing without the <$stack_name> changelog"
         fi
     fi
-    echo ...
+    echo
 }
 
 # run script
