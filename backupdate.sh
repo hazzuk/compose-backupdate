@@ -45,7 +45,7 @@ main() {
     verify_config
 
     # create backup directory
-    mkdir -p "$backup_dir" || { echo "Error, failed to create backup directory $backup_dir!"; exit 1; }
+    mkdir -p "$backup_dir/$stack_name" || { echo "Error, failed to create backup directory $backup_dir!"; exit 1; }
 
     # stop stack before backup
     echo "(stop)"
