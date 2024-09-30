@@ -229,7 +229,7 @@ backup_stack_volumes() {
 
 backup_volume() {
     local volume_name=$1
-    echo "Backup <$stack_name> volume: <$volume_name>"
+    echo "Backup volume: <$volume_name>"
     
     # backup volume data with temporary container
     docker run --rm \
