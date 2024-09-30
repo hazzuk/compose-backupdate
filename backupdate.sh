@@ -151,9 +151,9 @@ check_for_update() {
 
     # compare local version with the latest version
     if [[ "$version" != "$latest_version" ]]; then
-        echo "A new version v$latest_version is available! You are using v$version"
+        echo "A new version (v$latest_version) is available! You are using backupdate-v$version"
     else
-        echo "Running backupdate v$version"
+        echo "Running backupdate-v$version"
     fi
 }
 
