@@ -127,7 +127,7 @@ verify_config() {
         exit 1
     fi
     # echo script config
-    echo "compose-backupdate <$stack_name> $timestamp"
+    echo "backupdate <$stack_name> $timestamp"
     echo "- backup_dir: $backup_dir"
     echo -e "- working_dir: $working_dir\n "
 }
@@ -158,19 +158,35 @@ docker_stack_start() {
 docker_stack_dir() {
     # possible compose file names
     local compose_files=("compose.yaml" "compose.yml" "docker-compose.yaml" "docker-compose.yml")
+    # current directory name
+    local current_dir
+    current_dir=$(basename "$PWD") # "nginx"?
 
-    # check current directory for compose file
+    # check neither $docker_dir or $stack_name were passed
+    if [[ "$docker_dir" == "null" && "$stack_name" == "null" ]]; then
+        echo "Info, neither docker_dir or stack_name were passed, using current directory"
+    # but if $docker_dir was passed alone (likely as an environment variable), and is correct 
+    elif [[ "$docker_dir/$current_dir" = "$(pwd)" && "$stack_name" == "null" ]]; then
+        echo "Info, stack_name was not passed, using current directory"
+    # otherwise something was passed, do not use current directory
+    else
+        # update working_dir with passed options
+        working_dir="$docker_dir/$stack_name"
+        return 0
+    fi
+
+    # search current directory for compose file
     for file in "${compose_files[@]}"; do
         if [[ -f "$file" ]]; then
             # update working_dir and stack_name to current directory
             working_dir="$(pwd)"
-            stack_name=$(basename "$PWD")
+            stack_name=$current_dir
             echo -e "Found <$stack_name> $file in current directory\n "
             return 0
         fi
     done
-    # update working_dir with passed options
-    working_dir="$docker_dir/$stack_name"
+    echo "Error, compose file not found in current directory!"
+    usage
 }
 
 docker_stack_update() {
