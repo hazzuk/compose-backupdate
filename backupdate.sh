@@ -33,7 +33,7 @@ stack_name=${STACK_NAME:-"null"} # -s "nginx"
 update_requested=false           # -u
 
 # script variables
-timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
+timestamp=$(date +"%Y%m%d-%H%M%S")
 stack_running=false
 working_dir="null"
 
@@ -187,7 +187,7 @@ docker_stack_update() {
 
 backup_working_dir() {
     echo "Backup <$stack_name> directory: $working_dir"
-    tar -czf "$backup_dir/$stack_name-$timestamp.tar.gz" -C "$working_dir" .
+    tar -czf "$backup_dir/$stack_name/d-$stack_name-$timestamp.tar.gz" -C "$working_dir" .
     echo "- Directory backup complete"
 }
 
@@ -219,7 +219,7 @@ backup_volume() {
     docker run --rm \
         -v "$volume_name":/volume_data \
         -v "$backup_dir":/backup \
-        busybox tar czf "/backup/$volume_name-$timestamp.tar.gz" -C /volume_data . || \
+        busybox tar czf "/backup/$stack_name/v-$volume_name-$timestamp.tar.gz" -C /volume_data . || \
         { echo "Error, failed to create backup container!"; exit 1; }
     echo "- Volume backup complete"
 }
