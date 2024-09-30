@@ -77,7 +77,7 @@ main() {
 }
 
 usage() {
-    echo "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name]"
+    echo -e "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name]\n "
     exit 1
 }
 
@@ -129,7 +129,7 @@ verify_config() {
     # echo script config
     echo "compose-backupdate <$stack_name> $timestamp"
     echo "- backup_dir: $backup_dir"
-    echo -e "- working_dir: $working_dir\n..."
+    echo -e "- working_dir: $working_dir\n "
 }
 
 docker_stack_stop() {
@@ -165,7 +165,7 @@ docker_stack_dir() {
             # update working_dir and stack_name to current directory
             working_dir="$(pwd)"
             stack_name=$(basename "$PWD")
-            echo -e "Found <$stack_name> $file in current directory\n..."
+            echo -e "Found <$stack_name> $file in current directory\n "
             return 0
         fi
     done
