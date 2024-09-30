@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.1.0"
+version="0.2.0"
 
 # Copyright (c) 2024 hazzuk. All rights reserved.
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -32,6 +32,7 @@ backup_dir=${BACKUP_DIR:-"null"} # -b "/opt/backup"
 docker_dir=${DOCKER_DIR:-"null"} # -d "/opt/docker"
 stack_name=${STACK_NAME:-"null"} # -s "nginx"
 update_requested=false           # -u
+version_requested=false          # -v
 
 # script variables
 timestamp=$(date +"%Y%m%d-%H%M%S")
@@ -39,6 +40,12 @@ stack_running=false
 working_dir="null"
 
 main() {
+    # script version check
+    if [ "$version_requested" = true ]; then
+        check_for_update
+        exit 0
+    fi
+    
     # check current directory for compose file
     docker_stack_dir
 
@@ -83,7 +90,7 @@ usage() {
 }
 
 parse_args() {
-    while getopts ":b:d:s:u" opt; do
+    while getopts ":b:d:s:uv" opt; do
         case $opt in
             b)
                 backup_dir="$OPTARG"
@@ -96,6 +103,9 @@ parse_args() {
                 ;;
             u)
                 update_requested=true
+                ;;
+            v)
+                version_requested=true
                 ;;
             \?)
                 echo "Invalid option: -$OPTARG" >&2
@@ -289,6 +299,5 @@ print_changelog_url() {
 }
 
 # run script
-check_for_update
 parse_args "$@"
 main

@@ -41,10 +41,11 @@ backupdate -u -b "/path/to/your/backup"
 ```
 
 ### Run script with options
-`-b`: desired backup directory \
-`-d`: docker compose collection directory \
-`-s`: docker compose stack name \
-`-u`: update docker stack (optional)
+`-b ""`: desired backup directory \
+`-d ""`: docker compose collection directory \
+`-s ""`: docker compose stack name \
+`-u`: update docker stack (optional) \
+`-v`: check script version for updates (optional)
 ```bash
 backupdate -b "/path/to/your/backup" -d "/path/to/your/docker" -s "nginx"
 ```
