@@ -32,30 +32,19 @@ docker/
 
 ## Usage
 
-### Run script
-> [!TIP]
-> You can run the command inside your docker compose working directory (won't require `-d` or `-s`).
-
 ```bash
 backupdate -u -b "/path/to/your/backup"
 ```
 
-### Run script with options
-`-b ""`: desired backup directory \
-`-d ""`: docker compose collection directory \
-`-s ""`: docker compose stack name \
-`-u`: update docker stack (optional) \
-`-v`: check script version for updates (optional)
-```bash
-backupdate -b "/path/to/your/backup" -d "/path/to/your/docker" -s "nginx"
-```
-```bash
-backupdate -s "nginx" \
-	-b "/very/long/path/to/the/backup" \
-	-d "/very/long/path/to/docker"
-```
+### Script options
+- `-b ""`, `--backup-dir ""`: Desired backup directory  
+- `-d ""`, `--docker-dir ""`: Docker Compose directories parent
+- `-s ""`, `--stack-name ""`: Docker Compose stack name  
+- `-u`, `--update`: Update Docker stack (optional)  
+- `-v`, `--version`: Check script version for updates (optional)
 
-### Alternatively configure with environment variables
+
+### Environment variables
 ```bash
 # desired backup directory
 export BACKUP_DIR="/path/to/your/backup"
@@ -64,3 +53,27 @@ export DOCKER_DIR="/path/to/your/docker"
 # docker compose stack name
 export STACK_NAME="nginx"
 ```
+
+### Examples
+
+Backup
+```bash
+backupdate -b "/path/to/your/backup" -d "/path/to/your/docker" -s "nginx"
+```
+```bash
+backupdate -s "nginx" \
+    --backup-dir "/very/long/path/to/the/backup" \
+    --docker-dir "/very/long/path/to/docker"
+```
+
+Update (manual usage only)
+
+> [!TIP]
+> You can run the script inside your docker compose working directory (won't require `-d` or `-s`).
+
+```bash
+cd /path/to/your/docker/nginx
+
+backupdate -u -b "/path/to/your/backup"
+```
+
