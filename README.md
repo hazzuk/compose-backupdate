@@ -1,9 +1,9 @@
 # compose-backupdate
 <img src="header.webp">
 
-Bash script to perform backups with updates, and scheduled backups for docker compose stacks.
+Bash script to perform backups with updates, or scheduled backups for docker compose stacks.
 
-See offical Docker documentation for more details on ['Back up, restore, or migrate data volumes'](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
+See the offical Docker documentation for more details on ['Back up, restore, or migrate data volumes'](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
 
 ## Setup
 
