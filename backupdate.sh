@@ -85,35 +85,53 @@ main() {
 }
 
 usage() {
-    echo -e "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name]\n "
+    echo "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name] [-u] [-v]"
+    echo "       --backup-dir --docker-dir --stack-name --update --version"
     exit 1
 }
 
 parse_args() {
-    while getopts ":b:d:s:uv" opt; do
-        case $opt in
-            b)
-                backup_dir="$OPTARG"
+    local OPTIONS=b:d:s:uv
+    local LONGOPTS=backup-dir:,docker-dir:,stack-name:,update,version
+
+    # parse options
+    if ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@"); then
+        exit 2
+    fi
+
+    # evaluate parsed options
+    eval set -- "$PARSED"
+
+    # Now handle the options
+    while true; do
+        case "$1" in
+            -b|--backup-dir)
+                backup_dir="$2"
+                shift 2
                 ;;
-            d)
-                docker_dir="$OPTARG"
+            -d|--docker-dir)
+                docker_dir="$2"
+                shift 2
                 ;;
-            s)
-                stack_name="$OPTARG"
+            -s|--stack-name)
+                stack_name="$2"
+                shift 2
                 ;;
-            u)
+            -u|--update)
                 update_requested=true
+                shift
                 ;;
-            v)
+            -v|--version)
                 version_requested=true
+                shift
                 ;;
-            \?)
-                echo "Invalid option: -$OPTARG" >&2
-                usage
+            --)
+                shift
+                break
                 ;;
-            :)
-                echo "Option -$OPTARG requires an argument" >&2
-                usage
+            *)
+                echo "Unknown option: $1"
+                exit 3
                 ;;
         esac
     done
@@ -251,7 +269,7 @@ backup_stack_volumes() {
 
     # check volumes found
     if [ -z "$stack_volumes" ]; then
-        echo "Info, no volumes found for <$stack_name>"
+        echo -e "Info, no related volumes found for <$stack_name>\n "
         return 0
     fi
 
@@ -271,7 +289,7 @@ backup_volume() {
         -v "$volume_name":/volume_data \
         -v "$backup_dir":/backup \
         busybox tar czf "/backup/$stack_name/v-$volume_name-$timestamp.tar.gz" -C /volume_data . || \
-        { echo "Error, failed to create backup container!"; exit 1; }
+        { echo "Error, failed to create busybox backup container!"; exit 1; }
     echo "- Volume backup complete"
 }
 
