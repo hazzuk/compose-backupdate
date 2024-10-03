@@ -19,7 +19,7 @@ bash -c 'curl -fsSL -o /bin/backupdate https://raw.githubusercontent.com/hazzuk/
 ```
 
 ### Expected compose directory structure
-The script expects your docker compose working directory to be located in `$docker_dir/$stack_name`:
+The script expects your docker compose working directory to be located at `$docker_dir/$stack_name`:
 ```
 docker/
 ├─ nginx/
@@ -31,10 +31,6 @@ docker/
 ```
 
 ## Usage
-
-```bash
-backupdate -u -b "/path/to/your/backup"
-```
 
 ### Script options
 - `-b ""`, `--backup-dir ""`: Desired backup directory  
@@ -56,20 +52,19 @@ export STACK_NAME="nginx"
 
 ### Examples
 
-Backup
+#### Backups
 ```bash
-backupdate -b "/path/to/your/backup" -d "/path/to/your/docker" -s "nginx"
+backupdate -s "nginx" -d "/path/to/your/docker" -b "/path/to/your/backup"
 ```
 ```bash
-backupdate -s "nginx" \
-    --backup-dir "/very/long/path/to/the/backup" \
-    --docker-dir "/very/long/path/to/docker"
+backupdate --stack-name "nginx" \
+    --docker-dir "/very/long/path/to/docker" \
+    --backup-dir "/very/long/path/to/the/backup"
 ```
 
-Update (manual usage only)
-
+#### Updates (manual)
 > [!TIP]
-> You can run the script inside your docker compose working directory (won't require `-d` or `-s`).
+> backupdate automatically searches for a `compose.yaml` file inside your current directory (won't require `-d` or `-s`).
 
 ```bash
 cd /path/to/your/docker/nginx
@@ -77,3 +72,29 @@ cd /path/to/your/docker/nginx
 backupdate -u -b "/path/to/your/backup"
 ```
 
+#### Scheduled backups
+You can create a cron job or use another tool like [Cronicle](https://github.com/jhuckaby/Cronicle) to run the following example script periodically to backup your docker compose stacks:
+
+```bash
+#!/bin/bash
+
+# set environment variables
+export DOCKER_DIR="/path/to/your/docker"
+export BACKUP_DIR="/path/to/your/backup"
+
+# set stack names
+stack_names=(
+	"nginx"
+    "portainer"
+	"ghost"
+    "home-assistant"
+)
+
+# create backups
+for stack in "${stack_names[@]}"; do
+    backupdate -s "$stack"
+done
+
+# upload backups to cloud storage
+rclone sync $BACKUP_DIR dropbox:backup
+```
