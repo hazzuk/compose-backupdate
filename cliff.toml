@@ -1,7 +1,10 @@
 # git-cliff ~ configuration file
 # https://git-cliff.org/docs/configuration
 
+# template set as unconventional
 # `git cliff --tag 1.2.3 -o CHANGELOG.md`
+# `chore(release): prepare for v1.2.3`
+
 # [remote.github]
 # owner = "hazzuk"
 # repo = "compose-backupdate"
