@@ -296,7 +296,7 @@ docker_image_prune() {
         if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
             # prune unused images
             for image_id in "${docker_images_unused[@]}"; do
-                echo "Removing $image_id"
+                echo "- Removing $image_id"
                 docker rmi "$image_id" -f
             done
         else
