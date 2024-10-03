@@ -68,9 +68,10 @@ main() {
 
     # update if requested
     if [ "$update_requested" = true ]; then
-        # print stack changelog url
         echo "(updates)"
-        print_changelog_url
+
+        # print stack changelog url
+        # print_changelog_url
 
         # update compose stack
         docker_stack_update
@@ -345,27 +346,27 @@ backup_volume() {
     echo "- Volume backup complete"
 }
 
-print_changelog_url() {
-    local changelog_file="$working_dir/changelog.url"
+# print_changelog_url() {
+#     local changelog_file="$working_dir/changelog.url"
 
-    # check changelog.url exists
-    if [[ -f "$changelog_file" ]]; then
-        echo "Link to read the <$stack_name> changelog: "
-        cat "$changelog_file"
-    else
-        # ask user to create changelog.url
-        echo "File $changelog_file does not exist"
-        read -r -p "Please provide a URL (or press Enter to continue without): " user_input
+#     # check changelog.url exists
+#     if [[ -f "$changelog_file" ]]; then
+#         echo "Link to read the <$stack_name> changelog: "
+#         cat "$changelog_file"
+#     else
+#         # ask user to create changelog.url
+#         echo "File $changelog_file does not exist"
+#         read -r -p "Please provide a URL (or press Enter to continue without): " user_input
 
-        if [[ $user_input == http* ]]; then
-            # create changelog.url with user input
-            echo "$user_input" > "$changelog_file"
-            echo "- $changelog_file created"
-        else
-            echo "- No valid URL provided. Continuing without the <$stack_name> changelog"
-        fi
-    fi
-}
+#         if [[ $user_input == http* ]]; then
+#             # create changelog.url with user input
+#             echo "$user_input" > "$changelog_file"
+#             echo "- $changelog_file created"
+#         else
+#             echo "- No valid URL provided. Continuing without the <$stack_name> changelog"
+#         fi
+#     fi
+# }
 
 # run script
 parse_args "$@"
