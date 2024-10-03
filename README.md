@@ -15,6 +15,23 @@ Because I wanted a tool that was...
 
 See the official Docker documentation for more details on [Back up, restore, or migrate data volumes](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
 
+## Core Functionality
+
+The core focus of *backupdate* is in creating archived backups of your Docker compose stacks.
+
+### How it works
+
+1. 🔎Search the current directory for a *compose.yaml* file
+1. 🛑Stop any running containers in the Docker compose stack
+1. 📁Create a **.tar.gz** backup of the stacks working directory
+1. 📁Create **.tar.gz** backups of any associated named volumes
+1. ⬇️Ask to pull any new container images (`-u`)
+1. 🔁Recreate the Docker compose stack
+1. 🗑️Ask to prune any unused container images (`-u`)
+
+> [!NOTE]  
+> Updates can only be performed manually. This is by design.
+
 ## Setup
 
 ### Install
