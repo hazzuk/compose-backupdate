@@ -288,8 +288,8 @@ docker_image_prune() {
     
     # check no unused images found
     if [[ ${#docker_images_unused[@]} -eq 0 ]]; then
-        echo "- No unused images found"
-        exit 0
+        echo "- No unused images found\n "
+        return 0
     else
         # prompt user for confirmation before proceeding
         read -r -p "Do you want to prune unused images? (y/N): " confirm
