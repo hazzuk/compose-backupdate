@@ -1,9 +1,19 @@
 # compose-backupdate
 <img src="header.webp">
 
-Bash script to perform backups with updates, or scheduled backups for docker compose stacks.
+"Bash script for creating scheduled backups, and performing (backed-up) manual updates for docker compose stacks."
 
-See the offical Docker documentation for more details on ['Back up, restore, or migrate data volumes'](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
+## Why?
+Because I wanted a tool that was...
+
+- Simple by design
+- Doesn't require changes inside my `compose.yaml` files
+- Works with both **bind mounts** and **named volumes**
+- Can be used to create 🕑scheduled backups
+- Can also create ad-hoc backups alongside container ⬆️updates
+- Not a replacement for a cloud backup tool (like rclone)
+
+See the official Docker documentation for more details on ['Back up, restore, or migrate data volumes'](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
 
 ## Setup
 
