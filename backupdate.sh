@@ -66,8 +66,8 @@ main() {
     # backup docker volumes
     backup_stack_volumes
 
+    # update if requested
     if [ "$update_requested" = true ]; then
-
         # print stack changelog url
         echo "(updates)"
         print_changelog_url
@@ -79,6 +79,12 @@ main() {
     # start stack again if previously running
     echo "(resume)"
     docker_stack_start
+
+    # prune unused docker images
+    if [ "$update_requested" = true ]; then
+        echo "(prune)"
+        docker_image_prune
+    fi
 
     echo -e "backupdate complete!\n "
     exit 0
@@ -250,6 +256,52 @@ docker_stack_update() {
         docker compose pull
     else
         echo "- Update canceled"
+    fi
+    echo
+}
+
+docker_image_prune() {
+    local docker_images
+    local docker_images_unused=()
+
+    echo "Searching for unused docker images..."
+    # collect docker images output
+    docker_images=$(
+        docker images --format "table {{.ID}}\t{{.Repository}}\t{{.Tag}}\t{{.Size}}" | \
+        tail -n +2
+    )
+
+    # process images output
+    while read -r image_id repository tag size; do
+        # skip unused busybox image
+        if [[ "$repository" == "busybox" ]]; then
+            continue
+        fi
+        # check the image is not being used by a running/stopped container
+        if [[ -z $(docker ps -a --filter "ancestor=$image_id" --format '{{.ID}}') ]]; then
+            # append unused image_id to array
+            docker_images_unused+=("$image_id")
+            # print unused image details
+            printf "%-16s %-45s %-10s\n" "- $image_id" "$repository:$tag" "$size"
+        fi
+    done <<< "$docker_images" # avoid subshell
+    
+    # check no unused images found
+    if [[ ${#docker_images_unused[@]} -eq 0 ]]; then
+        echo "- No unused images found"
+        exit 0
+    else
+        # prompt user for confirmation before proceeding
+        read -r -p "Do you want to prune unused images? (y/N): " confirm
+        if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+            # prune unused images
+            for image_id in "${docker_images_unused[@]}"; do
+                echo "Removing $image_id"
+                docker rmi "$image_id" -f
+            done
+        else
+            echo "- Prune cancelled"
+        fi
     fi
     echo
 }
