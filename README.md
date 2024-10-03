@@ -1,7 +1,7 @@
 # compose-backupdate
 <img src="header.webp">
 
-"Bash script for creating scheduled backups, and performing (backed-up) manual updates for docker compose stacks."
+Bash script for creating scheduled backups, and performing (backed-up) manual updates on Docker compose stacks.
 
 ## Why?
 Because I wanted a tool that was...
@@ -13,7 +13,7 @@ Because I wanted a tool that was...
 - Can also create ad-hoc backups alongside container ⬆️updates
 - Not a replacement for a cloud backup tool (like rclone)
 
-See the official Docker documentation for more details on ['Back up, restore, or migrate data volumes'](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
+See the official Docker documentation for more details on [Back up, restore, or migrate data volumes](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
 
 ## Setup
 
@@ -43,18 +43,18 @@ docker/
 ## Usage
 
 ### Script options
-- `-b ""`, `--backup-dir ""`: Desired backup directory  
-- `-d ""`, `--docker-dir ""`: Docker Compose directories parent
-- `-s ""`, `--stack-name ""`: Docker Compose stack name  
-- `-u`, `--update`: Update Docker stack (optional)  
-- `-v`, `--version`: Check script version for updates (optional)
+- `-b ""`, `--backup-dir ""`: Backup directory  
+- `-d ""`, `--docker-dir ""`: Docker compose directory parent
+- `-s ""`, `--stack-name ""`: Docker compose stack name  
+- `-u`, `--update`: Update the stack containers *(optional)* 
+- `-v`, `--version`: Check the script version for updates *(optional)*
 
 
 ### Environment variables
 ```bash
-# desired backup directory
+# backup directory
 export BACKUP_DIR="/path/to/your/backup"
-# docker compose collection directory
+# docker compose directory parent
 export DOCKER_DIR="/path/to/your/docker"
 # docker compose stack name
 export STACK_NAME="nginx"
@@ -72,9 +72,9 @@ backupdate --stack-name "nginx" \
     --backup-dir "/very/long/path/to/the/backup"
 ```
 
-#### Updates (manual)
+#### Updates (manual only)
 > [!TIP]
-> backupdate automatically searches for a `compose.yaml` file inside your current directory (won't require `-d` or `-s`).
+> backupdate automatically searches for a `compose.yaml` / `docker-compose.yaml` file inside your current directory (subsequently won't require `-d`/`-s`).
 
 ```bash
 cd /path/to/your/docker/nginx
@@ -94,9 +94,9 @@ export BACKUP_DIR="/path/to/your/backup"
 
 # set stack names
 stack_names=(
-	"nginx"
+    "nginx"
     "portainer"
-	"ghost"
+    "ghost"
     "home-assistant"
 )
 
