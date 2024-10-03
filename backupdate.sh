@@ -77,7 +77,7 @@ main() {
     fi
 
     # start stack again if previously running
-    echo "(resume)"
+    echo "(recreate)"
     docker_stack_start
 
     # prune unused docker images
@@ -204,8 +204,8 @@ docker_stack_stop() {
 }
 
 docker_stack_start() {
+    echo "Resuming Docker stack: <$stack_name>"
     if [ "$stack_running" = true ]; then
-        echo "Restarting Docker stack: <$stack_name>"
         cd "$working_dir" || exit
         docker compose up -d
     else
