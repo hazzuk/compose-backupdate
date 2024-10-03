@@ -261,39 +261,42 @@ docker_stack_update() {
 }
 
 docker_image_prune() {
-    local unused_image_ids=()
+    local docker_images
+    local docker_images_unused=()
 
     echo "Searching for unused docker images..."
-    # collect any unused images
-    docker images --format "table {{.ID}}\t{{.Repository}}\t{{.Tag}}\t{{.Size}}" | \
-        tail -n +2 | \
-            while read -r image_id repository tag size; do
-                # skip unused busybox image
-                if [[ "$repository" == "busybox" ]]; then
-                    continue
-                fi
+    # collect docker images output
+    docker_images=$(
+        docker images --format "table {{.ID}}\t{{.Repository}}\t{{.Tag}}\t{{.Size}}" | \
+        tail -n +2
+    )
 
-                # check the image is being used by a running/stopped container
-                if [[ -z $(docker ps -a --filter "ancestor=$image_id" --format '{{.ID}}') ]]; then
-                    # append unused image_id to array
-                    unused_image_ids+=("$image_id")
-                    # print unused image details
-                    printf "%-16s %-45s %-10s\n" "- $image_id" "$repository:$tag" "$size"
-                fi
-            done
+    # process images output
+    while read -r image_id repository tag size; do
+        # skip unused busybox image
+        if [[ "$repository" == "busybox" ]]; then
+            continue
+        fi
+        # check the image is not being used by a running/stopped container
+        if [[ -z $(docker ps -a --filter "ancestor=$image_id" --format '{{.ID}}') ]]; then
+            # append unused image_id to array
+            docker_images_unused+=("$image_id")
+            # print unused image details
+            printf "%-16s %-45s %-10s\n" "- $image_id" "$repository:$tag" "$size"
+        fi
+    done <<< "$docker_images" # avoid subshell
     
-    # check for any unused images
-    if [[ ${#unused_image_ids[@]} -eq 0 ]]; then
+    # check no unused images found
+    if [[ ${#docker_images_unused[@]} -eq 0 ]]; then
         echo "- No unused images found"
         exit 0
     else
         # prompt user for confirmation before proceeding
         read -r -p "Do you want to prune unused images? (y/N): " confirm
         if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-            # prune unused images (except busybox)
-            # docker image prune -a -f --filter "label!=busybox"
-            for image_id in "${unused_image_ids[@]}"; do
-                echo "Removing image ID: $image_id"
+            # prune unused images
+            for image_id in "${docker_images_unused[@]}"; do
+                echo "Removing $image_id"
                 docker rmi "$image_id" -f
             done
         else
