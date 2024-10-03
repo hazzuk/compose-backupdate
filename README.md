@@ -4,16 +4,18 @@
 Bash script for creating scheduled backups, and performing (backed-up) manual updates on Docker compose stacks.
 
 ## Why?
-Because I wanted a tool that was...
+Because I needed a tool that was...
 
 - Simple by design
 - Doesn't require changes inside my `compose.yaml` files
 - Works with both **bind mounts** and **named volumes**
 - Can be used to create 🕑scheduled backups
 - Can also create ad-hoc backups alongside container ⬆️updates
-- Not a replacement for a cloud backup tool (like rclone)
+- Not trying to replace existing cloud backup tools (like rclone)
 
 See the official Docker documentation for more details on [Back up, restore, or migrate data volumes](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
+
+<br>
 
 ## Core Functionality
 
@@ -30,7 +32,9 @@ The core focus of *backupdate* is in creating archived backups of your Docker co
 1. 🗑️Ask to prune any unused container images (`-u`)
 
 > [!NOTE]  
-> Updates can only be performed manually. This is by design.
+> Stack updates can only be performed manually. This is by design.
+
+<br>
 
 ## Setup
 
@@ -38,8 +42,8 @@ The core focus of *backupdate* is in creating archived backups of your Docker co
 > [!WARNING]  
 > This script is provided as-is, without any warranty. Use it at your own risk.
 
-> [!NOTE]  
-> Install command and script must be run with root permissions.
+> [!IMPORTANT]  
+> The install command and the script must be run with root permissions.
 
 ```bash
 bash -c 'curl -fsSL -o /bin/backupdate https://raw.githubusercontent.com/hazzuk/compose-backupdate/refs/heads/main/backupdate.sh && chmod +x /bin/backupdate'
@@ -57,9 +61,11 @@ docker/
    └─ compose.yaml
 ```
 
-## Usage
+<br>
 
-### Script options
+## Options
+
+### Command line
 - `-b ""`, `--backup-dir ""`: Backup directory  
 - `-d ""`, `--docker-dir ""`: Docker compose directory parent
 - `-s ""`, `--stack-name ""`: Docker compose stack name  
@@ -77,9 +83,11 @@ export DOCKER_DIR="/path/to/your/docker"
 export STACK_NAME="nginx"
 ```
 
-### Examples
+<br>
 
-#### Backups
+## Example Usage
+
+### 📀Backups
 ```bash
 backupdate -s "nginx" -d "/path/to/your/docker" -b "/path/to/your/backup"
 ```
@@ -89,9 +97,9 @@ backupdate --stack-name "nginx" \
     --backup-dir "/very/long/path/to/the/backup"
 ```
 
-#### Updates (manual only)
+### ⬆️Updates *(manual only)*
 > [!TIP]
-> backupdate automatically searches for a `compose.yaml` / `docker-compose.yaml` file inside your current directory (subsequently won't require `-d`/`-s`).
+> *backupdate* automatically searches for a `compose.yaml` / `docker-compose.yaml` file inside your current directory (subsequently won't require `-d`/`-s`).
 
 ```bash
 cd /path/to/your/docker/nginx
@@ -99,7 +107,7 @@ cd /path/to/your/docker/nginx
 backupdate -u -b "/path/to/your/backup"
 ```
 
-#### Scheduled backups
+### 🕑Scheduled backups
 You can create a cron job or use another tool like [Cronicle](https://github.com/jhuckaby/Cronicle) to run the following example script periodically to backup your docker compose stacks:
 
 ```bash
