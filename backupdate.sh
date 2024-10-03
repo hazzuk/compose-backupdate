@@ -365,7 +365,6 @@ print_changelog_url() {
             echo "- No valid URL provided. Continuing without the <$stack_name> changelog"
         fi
     fi
-    echo
 }
 
 # run script
