@@ -168,6 +168,16 @@ verify_config() {
     echo -e "- working_dir: $working_dir\n "
 }
 
+confirm() {
+    local prompt="$1"
+    read -r -p "${prompt} (y/N): " confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+        return 0  # true
+    else
+        return 1  # false
+    fi
+}
+
 check_for_update() {
     local repo="hazzuk/compose-backupdate"
     local raw_url="https://raw.githubusercontent.com/$repo/refs/heads/main/backupdate.sh"
@@ -250,9 +260,7 @@ docker_stack_dir() {
 }
 
 docker_stack_update() {
-    read -p "Are you sure you want to update <$stack_name>? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    if confirm "Are you sure you want to update <$stack_name>?"; then
         echo "Updating Docker stack..."
         docker compose pull
     else
@@ -293,8 +301,7 @@ docker_image_prune() {
         return 0
     else
         # prompt user for confirmation before proceeding
-        read -r -p "Do you want to prune unused images? (y/N): " confirm
-        if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+        if confirm "Do you want to prune unused images?"; then
             # prune unused images
             for image_id in "${docker_images_unused[@]}"; do
                 echo "- Removing $image_id"
