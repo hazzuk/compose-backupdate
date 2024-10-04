@@ -13,7 +13,7 @@ version="1.0.0"
 # |___|___|_|_|_|  _|___|___|___|   |___|__,|___|_,_|___|  _|___|__,|_| |___|
 #               |_|                                     |_|                  
 #
-# Bash script for creating scheduled backups, and performing (backed-up) manual updates on Docker compose stacks
+# Bash script for creating scheduled backups, and performing (backed-up) guided updates on Docker compose stacks
 # https://github.com/hazzuk/compose-backupdate
 
 
