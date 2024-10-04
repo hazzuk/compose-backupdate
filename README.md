@@ -21,7 +21,6 @@ The core focus of *backupdate* is in creating archived backups of your Docker co
 
 ### How it works
 
-1. 🔎Search the current directory for a *compose.yaml* file
 1. 🛑Stop any running containers in the Docker compose stack
 1. 📁Create a **.tar.gz** backup of the stacks working directory
 1. 📁Create **.tar.gz** backups of any associated named volumes
