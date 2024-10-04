@@ -180,7 +180,7 @@ confirm() {
 
 check_for_update() {
     local repo="hazzuk/compose-backupdate"
-    local raw_url="https://raw.githubusercontent.com/$repo/refs/heads/main/backupdate.sh"
+    local raw_url="https://raw.githubusercontent.com/$repo/refs/heads/release/backupdate.sh"
     local latest_version_line
     local latest_version
 

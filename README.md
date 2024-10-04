@@ -25,7 +25,7 @@ The core focus of *backupdate* is in creating archived backups of your Docker co
 1. 📁Create a **.tar.gz** backup of the stacks working directory
 1. 📁Create **.tar.gz** backups of any associated named volumes
 1. ⬇️Ask to pull any new container images (`-u`)
-1. 🔁Recreate the Docker compose stack
+1. 🔁Recreate the Docker compose stack containers
 1. 🗑️Ask to prune any unused container images (`-u`)
 
 Read the official Docker documentation for more details on [Back up, restore, or migrate data volumes](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
@@ -42,7 +42,7 @@ Read the official Docker documentation for more details on [Back up, restore, or
 > The install command and the script must be run with root permissions.
 
 ```bash
-bash -c 'curl -fsSL -o /bin/backupdate https://raw.githubusercontent.com/hazzuk/compose-backupdate/refs/heads/main/backupdate.sh && chmod +x /bin/backupdate'
+bash -c 'curl -fsSL -o /bin/backupdate https://raw.githubusercontent.com/hazzuk/compose-backupdate/refs/heads/release/backupdate.sh && chmod +x /bin/backupdate'
 ```
 
 ### Expected compose directory structure
