@@ -13,8 +13,6 @@ Because I needed a tool that was...
 - Can also create ad-hoc backups alongside container ⬆️updates
 - Not trying to replace existing cloud backup tools (like rclone)
 
-See the official Docker documentation for more details on [Back up, restore, or migrate data volumes](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
-
 <br>
 
 ## Core Functionality
@@ -31,8 +29,7 @@ The core focus of *backupdate* is in creating archived backups of your Docker co
 1. 🔁Recreate the Docker compose stack
 1. 🗑️Ask to prune any unused container images (`-u`)
 
-> [!NOTE]  
-> Stack updates can only be performed manually. This is by design.
+Read the official Docker documentation for more details on [Back up, restore, or migrate data volumes](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
 
 <br>
 
@@ -98,8 +95,15 @@ backupdate --stack-name "nginx" \
 ```
 
 ### ⬆️Updates *(manual only)*
+> [!NOTE]  
+> Stack updates can only be performed manually. This is by design.
+
+```bash
+backupdate -u -s "nginx" -d "/path/to/your/docker" -b "/path/to/your/backup"
+```
+
 > [!TIP]
-> *backupdate* automatically searches for a `compose.yaml` / `docker-compose.yaml` file inside your current directory (subsequently won't require `-d`/`-s`).
+> *backupdate* automatically searches for a `compose.yaml` / `docker-compose.yaml` file inside your current directory (subsequently this won't require `-d` or `-s`).
 
 ```bash
 cd /path/to/your/docker/nginx
