@@ -1,5 +1,5 @@
 # compose-backupdate
-<img src="header.webp">
+<img src="assets/header.webp">
 
 Bash script for creating scheduled backups, and performing (backed-up) guided updates on Docker compose stacks.
 
