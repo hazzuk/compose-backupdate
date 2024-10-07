@@ -26,18 +26,25 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# user variables
-# (can be overridden by env variables or script arguments)
-backup_dir=${BACKUP_DIR:-"null"} # -b "/opt/backup"
-docker_dir=${DOCKER_DIR:-"null"} # -d "/opt/docker"
-stack_name=${STACK_NAME:-"null"} # -s "nginx"
-update_requested=false           # -u
-version_requested=false          # -v
+# variables
+# ---
 
-# script variables
+# required
+backup_dir=${BACKUP_DIR:-"null"}    # -b "/opt/backup"
+docker_dir=${DOCKER_DIR:-"null"}    # -d "/opt/docker"
+stack_name=${STACK_NAME:-"null"}    # -s "nginx"
+
+# optional
+update_requested=false              # -u
+version_requested=false             # -v
+
+# internal
 timestamp=$(date +"%Y%m%d-%H%M%S")
 stack_running=false
 working_dir="null"
+
+# script
+# ---
 
 main() {
     # script version check
@@ -90,6 +97,9 @@ main() {
     echo -e "backupdate complete!\n "
     exit 0
 }
+
+# utilities
+# ---
 
 usage() {
     echo "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name] [-u] [-v]"
@@ -201,6 +211,9 @@ check_for_update() {
         echo "Running backupdate-v$version"
     fi
 }
+
+# docker
+# ---
 
 docker_stack_stop() {
     echo "Stopping Docker stack: <$stack_name>"
@@ -314,6 +327,9 @@ docker_image_prune() {
     echo
 }
 
+# backups
+# ---
+
 backup_working_dir() {
     echo "Backup <$stack_name> directory: $working_dir"
     tar -czf "$backup_dir/$stack_name/d-$stack_name-$timestamp.tar.gz" -C "$working_dir" .
@@ -376,5 +392,7 @@ backup_volume() {
 # }
 
 # run script
+# ---
+
 parse_args "$@"
 main
