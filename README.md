@@ -62,12 +62,16 @@ docker/
 ## Options
 
 ### Command line
-- `-b ""`, `--backup-dir ""`: Backup directory  
-- `-d ""`, `--docker-dir ""`: Docker compose directory parent
-- `-s ""`, `--stack-name ""`: Docker compose stack name  
-- `-u`, `--update`: Update the stack containers *(optional)* 
-- `-v`, `--version`: Check the script version for updates *(optional)*
 
+#### Required
+- `-b ""`, `--backup-dir ""`: Backup directory
+- `-d ""`, `--docker-dir ""`: Docker compose directory parent
+- `-s ""`, `--stack-name ""`: Docker compose stack name
+
+#### Optional
+- `-l ""`, `--backup-blocklist ""`: Volumes/paths to ignore
+- `-u`, `--update`: Update the stack containers
+- `-v`, `--version`: Check the script version for updates
 
 ### Environment variables
 ```bash
@@ -77,6 +81,8 @@ export BACKUP_DIR="/path/to/your/backup"
 export DOCKER_DIR="/path/to/your/docker"
 # docker compose stack name
 export STACK_NAME="nginx"
+# volumes/paths to ignore
+export BACKUP_BLOCKLIST="plex_media,/plex-cache"
 ```
 
 <br>
@@ -136,3 +142,30 @@ done
 # upload backups to cloud storage
 rclone sync $BACKUP_DIR dropbox:backup
 ```
+
+### 🚫Backup blocklist
+
+By default, *backupdate* will backup all related named volumes and the stacks working directory. You can use `-l` / `--backup-blocklist` if you want to explicitly exclude certain volumes or paths from the backup.
+
+```bash
+# ignore plex_media volume and /plex-cache directory
+
+backupdate -s "plex" \
+    -d "/path/to/your/docker" \
+    -b "/path/to/your/backup" \
+    -l "plex_media,/plex-cache"
+```
+
+```bash
+# you'll likely want to set the backup blocklist as an environment variable if you need to ignore volumes/paths for multiple stacks
+
+export BACKUP_BLOCKLIST="\
+plex_media,\
+/plex-cache,\
+/nginx.conf,\
+nginx_logs,\
+/data/ghost.yml"
+```
+
+> [!TIP]
+> To avoid being recognised as a volume, paths must start with a `/`. Note that paths are interpreted as glob(3)-style wildcard patterns.
