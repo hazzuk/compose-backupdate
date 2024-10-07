@@ -7,11 +7,11 @@ version="1.0.0"
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
-#                                    _           _             _     _       
-#  ___ ___ _____ ___ ___ ___ ___ ___| |_ ___ ___| |_ _ _ ___ _| |___| |_ ___ 
+#                                    _           _             _     _
+#  ___ ___ _____ ___ ___ ___ ___ ___| |_ ___ ___| |_ _ _ ___ _| |___| |_ ___
 # |  _| . |     | . | . |_ -| -_|___| . | .'|  _| '_| | | . | . | .'|  _| -_|
 # |___|___|_|_|_|  _|___|___|___|   |___|__,|___|_,_|___|  _|___|__,|_| |___|
-#               |_|                                     |_|                  
+#               |_|                                     |_|
 #
 # Bash script for creating scheduled backups, and performing (backed-up) guided updates on Docker compose stacks
 # https://github.com/hazzuk/compose-backupdate
@@ -54,7 +54,7 @@ main() {
         check_for_update
         exit 0
     fi
-    
+
     # check current directory for compose file
     docker_stack_dir
 
@@ -327,7 +327,7 @@ docker_image_prune() {
             printf "%-16s %-45s %-10s\n" "- $image_id" "$repository:$tag" "$size"
         fi
     done <<< "$docker_images" # avoid subshell
-    
+
     # check no unused images found
     if [[ ${#docker_images_unused[@]} -eq 0 ]]; then
         echo -e "- No unused images found\n "
@@ -385,7 +385,7 @@ backup_stack_volumes() {
 backup_volume() {
     local volume_name=$1
     echo "Backup volume: <$volume_name>"
-    
+
     # backup volume data with temporary container
     docker run --rm \
         -v "$volume_name":/volume_data \
