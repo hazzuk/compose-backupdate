@@ -145,10 +145,10 @@ rclone sync $BACKUP_DIR dropbox:backup
 
 ### 🚫Backup blocklist
 
-By default, *backupdate* will backup all related named volumes and the stacks working directory. You can use `-l` / `--backup-blocklist` if you want to explicitly exclude certain volumes or paths from the backup.
+By default, *backupdate* will backup all related named volumes and the stacks full working directory. You can use either `-l` or `--backup-blocklist` if you want to explicitly exclude certain volumes or paths from the backup.
 
 ```bash
-# ignore plex_media volume and /plex-cache directory
+# ignore the plex_media volume and the /plex-cache directory
 
 backupdate -s "plex" \
     -d "/path/to/your/docker" \
@@ -157,7 +157,8 @@ backupdate -s "plex" \
 ```
 
 ```bash
-# you'll likely want to set the backup blocklist as an environment variable if you need to ignore volumes/paths for multiple stacks
+# you'll likely want to set the backup blocklist as an environment variable
+# when you need to ignore volumes/paths for multiple stacks
 
 export BACKUP_BLOCKLIST="\
 plex_media,\
