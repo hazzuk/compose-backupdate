@@ -1,5 +1,5 @@
 #!/bin/bash
-version="1.0.0"
+version="1.1.0"
 
 # Copyright (c) 2024 hazzuk. All rights reserved.
 # This Source Code Form is subject to the terms of the Mozilla Public
