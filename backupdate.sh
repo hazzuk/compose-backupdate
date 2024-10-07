@@ -7,11 +7,11 @@ version="1.0.0"
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
-#                                    _           _             _     _       
-#  ___ ___ _____ ___ ___ ___ ___ ___| |_ ___ ___| |_ _ _ ___ _| |___| |_ ___ 
+#                                    _           _             _     _
+#  ___ ___ _____ ___ ___ ___ ___ ___| |_ ___ ___| |_ _ _ ___ _| |___| |_ ___
 # |  _| . |     | . | . |_ -| -_|___| . | .'|  _| '_| | | . | . | .'|  _| -_|
 # |___|___|_|_|_|  _|___|___|___|   |___|__,|___|_,_|___|  _|___|__,|_| |___|
-#               |_|                                     |_|                  
+#               |_|                                     |_|
 #
 # Bash script for creating scheduled backups, and performing (backed-up) guided updates on Docker compose stacks
 # https://github.com/hazzuk/compose-backupdate
@@ -26,18 +26,28 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# user variables
-# (can be overridden by env variables or script arguments)
-backup_dir=${BACKUP_DIR:-"null"} # -b "/opt/backup"
-docker_dir=${DOCKER_DIR:-"null"} # -d "/opt/docker"
-stack_name=${STACK_NAME:-"null"} # -s "nginx"
-update_requested=false           # -u
-version_requested=false          # -v
+# variables
+# ---
 
-# script variables
+# required
+backup_dir=${BACKUP_DIR:-"null"}                # -b "/opt/backup"
+docker_dir=${DOCKER_DIR:-"null"}                # -d "/opt/docker"
+stack_name=${STACK_NAME:-"null"}                # -s "nginx"
+
+# optional
+backup_blocklist=${BACKUP_BLOCKLIST:-"null"}    # -l "media_vol,/media-bind"
+update_requested=false                          # -u
+version_requested=false                         # -v
+
+# internal
 timestamp=$(date +"%Y%m%d-%H%M%S")
 stack_running=false
 working_dir="null"
+volume_blocklist=()
+path_blocklist=()
+
+# script
+# ---
 
 main() {
     # script version check
@@ -45,7 +55,7 @@ main() {
         check_for_update
         exit 0
     fi
-    
+
     # check current directory for compose file
     docker_stack_dir
 
@@ -91,15 +101,18 @@ main() {
     exit 0
 }
 
+# utilities
+# ---
+
 usage() {
-    echo "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name] [-u] [-v]"
-    echo "       --backup-dir --docker-dir --stack-name --update --version"
+    echo "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name] [-l backup_blocklist] [-u] [-v]"
+    echo "       --backup-dir --docker-dir --stack-name --backup-blocklist --update --version"
     exit 1
 }
 
 parse_args() {
-    local OPTIONS=b:d:s:uv
-    local LONGOPTS=backup-dir:,docker-dir:,stack-name:,update,version
+    local OPTIONS=b:d:s:l:uv
+    local LONGOPTS=backup-dir:,docker-dir:,stack-name:,backup-blocklist:,update,version
 
     # parse options
     if ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@"); then
@@ -124,6 +137,10 @@ parse_args() {
                 stack_name="$2"
                 shift 2
                 ;;
+            -l|--backup-blocklist)
+                backup_blocklist="$2"
+                shift 2
+                ;;
             -u|--update)
                 update_requested=true
                 shift
@@ -145,7 +162,7 @@ parse_args() {
 }
 
 verify_config() {
-    # check script variables
+    # check required inputs
     if [ "$backup_dir" = "null" ]; then
         echo "Error, backup_dir not provided!"
         usage
@@ -162,10 +179,46 @@ verify_config() {
         echo "Error, working_dir not set!"
         exit 1
     fi
+
     # echo script config
     echo "backupdate <$stack_name> $timestamp"
     echo "- backup_dir: $backup_dir"
-    echo -e "- working_dir: $working_dir\n "
+    echo "- working_dir: $working_dir"
+
+    # check backup blocklist
+    if [ "$backup_blocklist" != "null" ]; then
+        # convert string to array
+        IFS=',' read -r -a blockarray <<< "$backup_blocklist"
+
+        # process items in array
+        for item in "${blockarray[@]}"; do
+            if [[ $item == /* ]]; then
+                # item starts with slash
+                item="${item#/}"
+                path_blocklist+=("$item")
+            else
+                volume_blocklist+=("$item")
+            fi
+        done
+
+        # echo volume blocklist
+        if [ ${#volume_blocklist[@]} -gt 0 ]; then
+            echo "- volume_blocklist:"
+            for vol in "${volume_blocklist[@]}"; do
+                echo -e "\t- $vol"
+            done
+        fi
+
+        # echo path blocklist
+        if [ ${#path_blocklist[@]} -gt 0 ]; then
+            echo "- path_blocklist:"
+            for path in "${path_blocklist[@]}"; do
+                echo -e "\t- $path"
+            done
+        fi
+    fi
+
+    echo
 }
 
 confirm() {
@@ -201,6 +254,9 @@ check_for_update() {
         echo "Running backupdate-v$version"
     fi
 }
+
+# docker
+# ---
 
 docker_stack_stop() {
     echo "Stopping Docker stack: <$stack_name>"
@@ -294,7 +350,7 @@ docker_image_prune() {
             printf "%-16s %-45s %-10s\n" "- $image_id" "$repository:$tag" "$size"
         fi
     done <<< "$docker_images" # avoid subshell
-    
+
     # check no unused images found
     if [[ ${#docker_images_unused[@]} -eq 0 ]]; then
         echo -e "- No unused images found\n "
@@ -314,9 +370,26 @@ docker_image_prune() {
     echo
 }
 
+# backups
+# ---
+
 backup_working_dir() {
+    local exclude_opts=""
+    local exclude_info=""
+
     echo "Backup <$stack_name> directory: $working_dir"
-    tar -czf "$backup_dir/$stack_name/d-$stack_name-$timestamp.tar.gz" -C "$working_dir" .
+
+    # set blocklist options
+    if [ ${#path_blocklist[@]} -gt 0 ]; then
+        for path in "${path_blocklist[@]}"; do
+            exclude_opts+="--exclude=$path "
+            exclude_info+="$path "
+        done
+        echo "- Skipping blocklisted paths: $exclude_info"
+    fi
+
+    # create archive with exclude options
+    eval tar -czf "$backup_dir/$stack_name/d-$stack_name-$timestamp.tar.gz" "$exclude_opts" -C "$working_dir" .
     echo "- Directory backup complete"
 }
 
@@ -335,6 +408,14 @@ backup_stack_volumes() {
 
     # backup each volume
     for volume_name in $stack_volumes; do
+        echo "Backup volume: <$volume_name>"
+
+        # skip blocklisted volumes
+        if [[ " ${volume_blocklist[*]} " == *" $volume_name "* ]]; then
+            echo "- Skipping blocklisted volume"
+            continue
+        fi
+        # create backup
         backup_volume "$volume_name"
     done
     echo
@@ -342,8 +423,7 @@ backup_stack_volumes() {
 
 backup_volume() {
     local volume_name=$1
-    echo "Backup volume: <$volume_name>"
-    
+
     # backup volume data with temporary container
     docker run --rm \
         -v "$volume_name":/volume_data \
@@ -376,5 +456,7 @@ backup_volume() {
 # }
 
 # run script
+# ---
+
 parse_args "$@"
 main
