@@ -35,7 +35,7 @@ docker_dir=${DOCKER_DIR:-"null"}                # -d "/opt/docker"
 stack_name=${STACK_NAME:-"null"}                # -s "nginx"
 
 # optional
-volume_blocklist=${VOLUME_BLOCKLIST:-"null"}    # -l "plex_media,plex_cache"
+backup_blocklist=${BACKUP_BLOCKLIST:-"null"}    # -l "media_vol,/media-bind"
 update_requested=false                          # -u
 version_requested=false                         # -v
 
@@ -43,7 +43,8 @@ version_requested=false                         # -v
 timestamp=$(date +"%Y%m%d-%H%M%S")
 stack_running=false
 working_dir="null"
-volume_blockarray=()
+volume_blocklist=()
+path_blocklist=()
 
 # script
 # ---
@@ -104,14 +105,14 @@ main() {
 # ---
 
 usage() {
-    echo "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name] [-l volume_blocklist] [-u] [-v]"
-    echo "       --backup-dir --docker-dir --stack-name --volume-blocklist --update --version"
+    echo "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name] [-l backup_blocklist] [-u] [-v]"
+    echo "       --backup-dir --docker-dir --stack-name --backup-blocklist --update --version"
     exit 1
 }
 
 parse_args() {
     local OPTIONS=b:d:s:l:uv
-    local LONGOPTS=backup-dir:,docker-dir:,stack-name:,volume-blocklist:,update,version
+    local LONGOPTS=backup-dir:,docker-dir:,stack-name:,backup-blocklist:,update,version
 
     # parse options
     if ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@"); then
@@ -136,8 +137,8 @@ parse_args() {
                 stack_name="$2"
                 shift 2
                 ;;
-            -l|--volume-blocklist)
-                volume_blocklist="$2"
+            -l|--backup-blocklist)
+                backup_blocklist="$2"
                 shift 2
                 ;;
             -u|--update)
@@ -184,15 +185,37 @@ verify_config() {
     echo "- backup_dir: $backup_dir"
     echo "- working_dir: $working_dir"
 
-    # check volume blocklist
-    if [ "$volume_blocklist" != "null" ]; then
-        echo "- volume_blocklist:"
-
+    # check backup blocklist
+    if [ "$backup_blocklist" != "null" ]; then
         # convert string to array
-        IFS=',' read -r -a volume_blockarray <<< "$volume_blocklist"
-        for volume in "${volume_blockarray[@]}"; do
-            echo -e "\t- $volume"
+        IFS=',' read -r -a blockarray <<< "$backup_blocklist"
+
+        # process items in array
+        for item in "${blockarray[@]}"; do
+            if [[ $item == /* ]]; then
+                # item starts with slash
+                item="${item#/}"
+                path_blocklist+=("$item")
+            else
+                volume_blocklist+=("$item")
+            fi
         done
+
+        # echo volume blocklist
+        if [ ${#volume_blocklist[@]} -gt 0 ]; then
+            echo "- volume_blocklist:"
+            for vol in "${volume_blocklist[@]}"; do
+                echo -e "\t- $vol"
+            done
+        fi
+
+        # echo path blocklist
+        if [ ${#path_blocklist[@]} -gt 0 ]; then
+            echo "- path_blocklist:"
+            for path in "${path_blocklist[@]}"; do
+                echo -e "\t- $path"
+            done
+        fi
     fi
 
     echo
@@ -371,9 +394,11 @@ backup_stack_volumes() {
 
     # backup each volume
     for volume_name in $stack_volumes; do
+        echo "Backup volume: <$volume_name>"
+
         # skip blocklisted volumes
-        if [[ " ${volume_blockarray[*]} " == *" $volume_name "* ]]; then
-            echo "Skipping blocklisted volume: <$volume_name>"
+        if [[ " ${volume_blocklist[*]} " == *" $volume_name "* ]]; then
+            echo "- Skipping blocklisted volume"
             continue
         fi
         # create backup
@@ -384,7 +409,6 @@ backup_stack_volumes() {
 
 backup_volume() {
     local volume_name=$1
-    echo "Backup volume: <$volume_name>"
 
     # backup volume data with temporary container
     docker run --rm \
