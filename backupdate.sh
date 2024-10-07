@@ -371,6 +371,12 @@ backup_stack_volumes() {
 
     # backup each volume
     for volume_name in $stack_volumes; do
+        # skip blocklisted volumes
+        if [[ " ${volume_blockarray[*]} " == *" $volume_name "* ]]; then
+            echo "Skipping blocklisted volume: <$volume_name>"
+            continue
+        fi
+        # create backup
         backup_volume "$volume_name"
     done
     echo
