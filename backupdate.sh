@@ -374,8 +374,22 @@ docker_image_prune() {
 # ---
 
 backup_working_dir() {
+    local exclude_opts=""
+    local exclude_info=""
+
     echo "Backup <$stack_name> directory: $working_dir"
-    tar -czf "$backup_dir/$stack_name/d-$stack_name-$timestamp.tar.gz" -C "$working_dir" .
+
+    # set blocklist options
+    if [ ${#path_blocklist[@]} -gt 0 ]; then
+        for path in "${path_blocklist[@]}"; do
+            exclude_opts+="--exclude=$path "
+            exclude_info+="$path "
+        done
+        echo "- Skipping blocklisted paths: $exclude_info"
+    fi
+
+    # create archive with exclude options
+    eval tar -czf "$backup_dir/$stack_name/d-$stack_name-$timestamp.tar.gz" "$exclude_opts" -C "$working_dir" .
     echo "- Directory backup complete"
 }
 
