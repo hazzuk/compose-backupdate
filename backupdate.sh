@@ -30,18 +30,20 @@ fi
 # ---
 
 # required
-backup_dir=${BACKUP_DIR:-"null"}    # -b "/opt/backup"
-docker_dir=${DOCKER_DIR:-"null"}    # -d "/opt/docker"
-stack_name=${STACK_NAME:-"null"}    # -s "nginx"
+backup_dir=${BACKUP_DIR:-"null"}                # -b "/opt/backup"
+docker_dir=${DOCKER_DIR:-"null"}                # -d "/opt/docker"
+stack_name=${STACK_NAME:-"null"}                # -s "nginx"
 
 # optional
-update_requested=false              # -u
-version_requested=false             # -v
+volume_blocklist=${VOLUME_BLOCKLIST:-"null"}    # -l "plex_media,plex_cache"
+update_requested=false                          # -u
+version_requested=false                         # -v
 
 # internal
 timestamp=$(date +"%Y%m%d-%H%M%S")
 stack_running=false
 working_dir="null"
+volume_blockarray=()
 
 # script
 # ---
@@ -102,14 +104,14 @@ main() {
 # ---
 
 usage() {
-    echo "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name] [-u] [-v]"
-    echo "       --backup-dir --docker-dir --stack-name --update --version"
+    echo "Usage: $0 [-b backup_dir] [-d docker_dir] [-s stack_name] [-l volume_blocklist] [-u] [-v]"
+    echo "       --backup-dir --docker-dir --stack-name --volume-blocklist --update --version"
     exit 1
 }
 
 parse_args() {
-    local OPTIONS=b:d:s:uv
-    local LONGOPTS=backup-dir:,docker-dir:,stack-name:,update,version
+    local OPTIONS=b:d:s:l:uv
+    local LONGOPTS=backup-dir:,docker-dir:,stack-name:,volume-blocklist:,update,version
 
     # parse options
     if ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@"); then
@@ -134,6 +136,10 @@ parse_args() {
                 stack_name="$2"
                 shift 2
                 ;;
+            -l|--volume-blocklist)
+                volume_blocklist="$2"
+                shift 2
+                ;;
             -u|--update)
                 update_requested=true
                 shift
@@ -155,7 +161,7 @@ parse_args() {
 }
 
 verify_config() {
-    # check script variables
+    # check required inputs
     if [ "$backup_dir" = "null" ]; then
         echo "Error, backup_dir not provided!"
         usage
@@ -172,10 +178,24 @@ verify_config() {
         echo "Error, working_dir not set!"
         exit 1
     fi
+
     # echo script config
     echo "backupdate <$stack_name> $timestamp"
     echo "- backup_dir: $backup_dir"
-    echo -e "- working_dir: $working_dir\n "
+    echo "- working_dir: $working_dir"
+
+    # check volume blocklist
+    if [ "$volume_blocklist" != "null" ]; then
+        echo "- volume_blocklist:"
+
+        # convert string to array
+        IFS=',' read -r -a volume_blockarray <<< "$volume_blocklist"
+        for volume in "${volume_blockarray[@]}"; do
+            echo -e "\t- $volume"
+        done
+    fi
+
+    echo
 }
 
 confirm() {
