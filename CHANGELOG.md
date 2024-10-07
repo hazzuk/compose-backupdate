@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.0 - 2024-10-07
+
+### Bug Fixes
+
+- fix: wrong project about line
+
+### Documentation
+
+- docs: reorganise content placement
+- docs: simplify functionality guide
+- docs: adjust updates wording
+- docs: add backup_blocklist guide
+- docs: update blocklist guide wording
+
+### Features
+
+- feat: create volume blocklist option
+- feat: skip blocklisted volumes at backup
+- feat: create path blocklist
+- feat: skip blocklisted paths at backup
+
+### Miscellaneous Tasks
+
+- chore: switch to release branch
+- chore: create project icon
+- chore: move project header image
+- chore: create full size project icon
+- chore: add comments for each section
+
+### Other (unconventional)
+
+- Merge pull request #9 from hazzuk/backup-blocklist
+
+### Styling
+
+- style: remove excess whitespace
+
 ## 1.0.0 - 2024-10-03
 
 ### Bug Fixes
