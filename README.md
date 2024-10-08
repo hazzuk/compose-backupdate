@@ -170,3 +170,28 @@ nginx_logs,\
 
 > [!TIP]
 > To avoid being recognised as a volume, paths must start with a `/`. Note that paths are interpreted as glob(3)-style wildcard patterns.
+
+<br>
+
+## FAQ
+
+### How do I restore the backup?
+
+Restoring backups isn't currently a process automated by the script. But as *backupdate* is just executing [standard Docker commands](https://github.com/hazzuk/compose-backupdate/blob/7b3d2edb05374e707af79c00d303e9988065e7f8/backupdate.sh#L347), all you'd need to do is follow the official Docker guide on ['Restoring volumes from backups'](https://docs.docker.com/engine/storage/volumes/#restore-volume-from-a-backup).
+
+### Do I need to stop containers before running backupdate?
+
+Nope, *backupdate* does that for you. All containers are stopped automatically before a backup to ensure the data saved is reliable.
+
+### How does it backup DB volumes?
+
+The script treats all containers and their volumes the same. Shut them down, back them up, then restart them.
+
+There are alternative tools that do specifically  handle database backups with Docker. This would probably be most useful if you don't want any downtime. Or want to create a lot more backups each day, then use another tool with deduplication abilities to save on storage space.
+
+### Alternative tools
+
+- [offen/docker-volume-backup](https://github.com/offen/docker-volume-backup)
+- [loomchild/volume-backup](https://github.com/loomchild/volume-backup)
+- [tiredofit/docker-db-backup](https://github.com/tiredofit/docker-db-backup)
+- [prodrigestivill/docker-postgres-backup-local](https://github.com/prodrigestivill/docker-postgres-backup-local)
