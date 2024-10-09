@@ -177,7 +177,7 @@ nginx_logs,\
 
 ### How do I restore the backup?
 
-Restoring backups isn't currently a process automated by the script. But as *backupdate* is just executing [standard Docker commands](https://github.com/hazzuk/compose-backupdate/blob/7b3d2edb05374e707af79c00d303e9988065e7f8/backupdate.sh#L347), all you'd need to do is follow the official Docker guide on ['Restoring volumes from backups'](https://docs.docker.com/engine/storage/volumes/#restore-volume-from-a-backup).
+Restoring backups isn't currently a process automated by the script. But as *backupdate* is just executing [standard Docker commands](https://github.com/hazzuk/compose-backupdate/blob/7b3d2edb05374e707af79c00d303e9988065e7f8/backupdate.sh#L347-L351), all you'd need to do is follow the official Docker guide on ['Restoring volumes from backups'](https://docs.docker.com/engine/storage/volumes/#restore-volume-from-a-backup).
 
 ### Do I need to stop containers before running backupdate?
 
