@@ -288,15 +288,15 @@ docker_stack_dir() {
     local current_dir
     current_dir=$(basename "$PWD") # "nginx"?
 
-    # check neither $docker_dir or $stack_name were passed
+    # check neither $docker_dir or $stack_name were provided
     if [[ "$docker_dir" == "null" && "$stack_name" == "null" ]]; then
-        echo "Info, neither docker_dir or stack_name were passed, using current directory"
-    # but if $docker_dir was passed alone (likely as an environment variable), and is correct 
+        echo "Info, neither docker_dir or stack_name were provided, using current directory"
+    # but if $docker_dir was provided alone (likely as an environment variable), and is correct 
     elif [[ "$docker_dir/$current_dir" = "$(pwd)" && "$stack_name" == "null" ]]; then
-        echo "Info, stack_name was not passed, using current directory"
-    # otherwise something was passed, do not use current directory
+        echo "Info, stack_name was not provided, using current directory"
+    # otherwise something was provided, do not use current directory
     else
-        # update working_dir with passed options
+        # update working_dir with provided options
         working_dir="$docker_dir/$stack_name"
         return 0
     fi
