@@ -52,7 +52,7 @@ path_blocklist=()
 main() {
     # script version check
     if [ "$version_requested" = true ]; then
-        check_for_update
+        script_update_check
         exit 0
     fi
 
@@ -231,7 +231,7 @@ confirm() {
     fi
 }
 
-check_for_update() {
+script_update_check() {
     local repo="hazzuk/compose-backupdate"
     local raw_url="https://raw.githubusercontent.com/$repo/refs/heads/release/backupdate.sh"
     local latest_version_line
