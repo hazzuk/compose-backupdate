@@ -94,7 +94,13 @@ main() {
     # prune unused docker images
     if [ "$update_requested" = true ]; then
         echo "(prune)"
-        docker_image_prune
+        # new images must be associated with a running stack
+        if [ "$stack_running" = true ]; then
+            docker_image_prune
+        else
+            echo "- Docker stack not running, skipping image prune"
+            echo
+        fi
     fi
 
     echo -e "backupdate complete!\n "
