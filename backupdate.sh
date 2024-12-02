@@ -52,7 +52,7 @@ path_blocklist=()
 main() {
     # script version check
     if [ "$version_requested" = true ]; then
-        check_for_update
+        script_update_check
         exit 0
     fi
 
@@ -94,7 +94,13 @@ main() {
     # prune unused docker images
     if [ "$update_requested" = true ]; then
         echo "(prune)"
-        docker_image_prune
+        # new images must be associated with a running stack
+        if [ "$stack_running" = true ]; then
+            docker_image_prune
+        else
+            echo "- Docker stack not running, skipping image prune"
+            echo
+        fi
     fi
 
     echo -e "backupdate complete!\n "
@@ -231,7 +237,7 @@ confirm() {
     fi
 }
 
-check_for_update() {
+script_update_check() {
     local repo="hazzuk/compose-backupdate"
     local raw_url="https://raw.githubusercontent.com/$repo/refs/heads/release/backupdate.sh"
     local latest_version_line
