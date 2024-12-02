@@ -267,7 +267,8 @@ script_update_check() {
 docker_stack_stop() {
     echo "Stopping Docker stack: <$stack_name>"
     cd "$working_dir" || exit
-    if docker compose ps --filter "status=running" | grep -q "$stack_name"; then
+    # check stack running, with at least one container running
+    if docker compose ls --quiet --filter "name=$stack_name" | grep -q "$stack_name"; then
         stack_running=true
         docker compose stop
     else
