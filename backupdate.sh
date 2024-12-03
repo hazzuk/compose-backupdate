@@ -45,6 +45,8 @@ stack_running=false
 working_dir="null"
 volume_blocklist=()
 path_blocklist=()
+running_container_ids=""
+running_container_names=""
 
 # script
 # ---
@@ -87,8 +89,8 @@ main() {
         docker_stack_update
     fi
 
-    # start stack again if previously running
-    echo "(recreate)"
+    # restart stack again if previously running
+    echo "(restart)"
     docker_stack_start
 
     # prune unused docker images
@@ -103,7 +105,7 @@ main() {
         fi
     fi
 
-    echo -e "backupdate complete!\n "
+    echo -e "backupdate complete!\n\n"
     exit 0
 }
 
@@ -265,25 +267,75 @@ script_update_check() {
 # ---
 
 docker_stack_stop() {
+    local container_ids
+    local container_names
+
     echo "Stopping Docker stack: <$stack_name>"
     cd "$working_dir" || exit
+    
     # check stack running, with at least one container running
     if docker compose ls --quiet --filter "name=$stack_name" | grep -q "$stack_name"; then
         stack_running=true
-        docker compose stop
+
+        # get running containers ids
+        container_ids=$(docker compose ps --quiet --filter "status=running")
+
+        # get running containers names
+        if [ -n "$container_ids" ]; then
+            # shellcheck disable=SC2086
+            container_names=$(docker inspect --format '{{.Name}}' $container_ids | sed 's|^/||' | tr -d '\r')
+
+            # print container ids
+            # echo "List of running containers (IDs):"
+            # for id in $container_ids; do
+            #     echo "- $id"
+            # done
+
+            # print container names
+            for name in $container_names; do
+                echo "- $name"
+            done
+
+            running_container_ids=$container_ids
+            running_container_names=$container_names
+
+        else
+            echo "- No running containers found"
+        fi
+
+        # stop stack
+        docker compose --progress "quiet" stop
+
     else
-        echo "- Docker stack <$stack_name> not running, skipping compose stop"
+        stack_running=false
+        echo "- Docker stack <$stack_name> not running, skipping docker stop"
     fi
     echo
 }
 
 docker_stack_start() {
     echo "Resuming Docker stack: <$stack_name>"
+
+    # check stack was previously running
     if [ "$stack_running" = true ]; then
         cd "$working_dir" || exit
-        docker compose up -d
+
+        # restart only previously running containers
+        if [ -n "$running_container_ids" ]; then
+
+            # print container names
+            for name in $running_container_names; do
+                echo "- $name"
+            done
+
+            # restart containers
+            echo
+            # shellcheck disable=SC2086
+            docker start $running_container_ids
+        fi
+
     else
-        echo "- Docker stack <$stack_name> not previously running, skipping compose up"
+        echo "- Docker stack <$stack_name> not previously running, skipping docker start"
     fi
     echo
 }
