@@ -285,22 +285,18 @@ docker_stack_stop() {
             # shellcheck disable=SC2086
             container_names=$(docker inspect --format '{{.Name}}' $container_ids | sed 's|^/||' | tr -d '\r')
 
-            # print container ids
-            # echo "List of running containers (IDs):"
-            # for id in $container_ids; do
-            #     echo "- $id"
-            # done
-
             # print container names
             for name in $container_names; do
                 echo "- $name"
             done
 
+            # set global variables
             running_container_ids=$container_ids
             running_container_names=$container_names
 
         else
-            echo "- No running containers found"
+            echo "Error, stack running but no container IDs found!"
+            exit 1
         fi
 
         # stop stack
