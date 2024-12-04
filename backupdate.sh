@@ -100,7 +100,7 @@ main() {
         if [ "$stack_running" = true ]; then
             docker_image_prune
         else
-            echo "- Docker stack not running, skipping image prune"
+            echo "- Docker stack was not recreated, skipping image prune"
             echo
         fi
     fi
@@ -272,39 +272,49 @@ docker_stack_stop() {
 
     echo "Stopping Docker stack: <$stack_name>"
     cd "$working_dir" || exit
-    
-    # check stack running, with at least one container running
-    if docker compose ls --quiet --filter "name=$stack_name" | grep -q "$stack_name"; then
-        stack_running=true
 
-        # get running containers ids
-        container_ids=$(docker compose ps --quiet --filter "status=running")
-
-        # get running containers names
-        if [ -n "$container_ids" ]; then
-            # shellcheck disable=SC2086
-            container_names=$(docker inspect --format '{{.Name}}' $container_ids | sed 's|^/||' | tr -d '\r')
-
-            # print container names
-            for name in $container_names; do
-                echo "- $name"
-            done
-
-            # set global variables
-            running_container_ids=$container_ids
-            running_container_names=$container_names
-
-        else
-            echo "Error, stack running but no container IDs found!"
-            exit 1
-        fi
+    # for updates, require stack to be removed
+    if [ "$update_requested" = true ]; then
+        stack_running=false
 
         # stop stack
-        docker compose --progress "quiet" stop
+        echo "- Update requested, removing all stack containers"
+        docker compose --progress "quiet" down
 
     else
-        stack_running=false
-        echo "- Docker stack <$stack_name> not running, skipping docker stop"
+        # check stack running, with at least one container running
+        if docker compose ls --quiet --filter "name=$stack_name" | grep -q "$stack_name"; then
+            stack_running=true
+
+            # get running containers ids
+            container_ids=$(docker compose ps --quiet --filter "status=running")
+
+            # get running containers names
+            if [ -n "$container_ids" ]; then
+                # shellcheck disable=SC2086
+                container_names=$(docker inspect --format '{{.Name}}' $container_ids | sed 's|^/||' | tr -d '\r')
+
+                # print container names
+                for name in $container_names; do
+                    echo "- $name"
+                done
+
+                # set global variables
+                running_container_ids=$container_ids
+                running_container_names=$container_names
+
+            else
+                echo "Error, stack running but no container IDs found!"
+                exit 1
+            fi
+
+            # stop stack
+            docker compose --progress "quiet" stop
+
+        else
+            stack_running=false
+            echo "- Docker stack <$stack_name> not running, skipping docker stop"
+        fi
     fi
     echo
 }
@@ -331,7 +341,22 @@ docker_stack_start() {
         fi
 
     else
-        echo "- Docker stack <$stack_name> not previously running, skipping docker start"
+        # for updates, stack should be recreated with updated images
+        if [ "$update_requested" = true ]; then
+            if confirm "Do you want to recreate <$stack_name>'s containers now?"; then
+                echo "Recreating Docker stack..."
+                docker compose up -d
+
+                # new stack running, can prune unused images
+                stack_running=true
+            else
+                echo "- Stack recreation canceled"
+            fi
+        
+        # stack was not previously running
+        else
+            echo "- Docker stack <$stack_name> not previously running, skipping docker start"
+        fi
     fi
     echo
 }
