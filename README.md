@@ -30,10 +30,10 @@ The core focus of *backupdate* is in creating archived backups of your Docker co
 1. 📁Create a **.tar.gz** backup of the stacks working directory
 1. 📁Create **.tar.gz** backups of any associated named volumes
 1. ⬇️Ask to pull any new container images (`-u`)
-1. 🔁Recreate the Docker compose stack containers
+1. 🔁Restart previously running Docker compose containers
 1. 🗑️Ask to prune any unused container images (`-u`)
 
-Read the official Docker documentation for more details on [Back up, restore, or migrate data volumes](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
+Read the official Docker documentation for more details on ["Back up, restore, or migrate data volumes"](https://docs.docker.com/engine/storage/volumes/#back-up-restore-or-migrate-data-volumes).
 
 <br>
 
@@ -44,7 +44,7 @@ Read the official Docker documentation for more details on [Back up, restore, or
 > This script is provided as-is, without any warranty. Use it at your own risk.
 
 > [!IMPORTANT]  
-> The install command and the script must be run with root permissions.
+> The install command and the script must be run with elevated permissions.
 
 ```bash
 bash -c 'curl -fsSL -o /bin/backupdate https://raw.githubusercontent.com/hazzuk/compose-backupdate/refs/heads/release/backupdate.sh && chmod +x /bin/backupdate'
@@ -53,6 +53,9 @@ bash -c 'curl -fsSL -o /bin/backupdate https://raw.githubusercontent.com/hazzuk/
 ### Expected compose directory structure
 The script expects your docker compose working directory to be located at `$docker_dir/$stack_name`:
 ```
+$docker_dir = "/path/to/your/docker"
+$stack_name = "nextcloud"
+
 docker/
 ├─ nginx/
 │  └─ compose.yaml
@@ -104,16 +107,9 @@ backupdate --stack-name "nginx" \
     --backup-dir "/very/long/path/to/the/backup"
 ```
 
-### ⬆️Updates *(manual only)*
-> [!NOTE]  
-> Stack updates can only be performed manually. This is by design.
-
-```bash
-backupdate -u -s "nginx" -d "/path/to/your/docker" -b "/path/to/your/backup"
-```
-
 > [!TIP]
-> *backupdate* automatically searches for a `compose.yaml` / `docker-compose.yaml` file inside your current directory (subsequently this won't require `-d` or `-s`).
+> *backupdate* automatically searches for a `compose.yaml` / `docker-compose.yaml` file inside your current directory.
+> Running *backupdate* inside your Docker compose working directory won't require `--docker-dir` or `--stack-name`:
 
 ```bash
 cd /path/to/your/docker/nginx
@@ -121,8 +117,20 @@ cd /path/to/your/docker/nginx
 backupdate -u -b "/path/to/your/backup"
 ```
 
+<br>
+
+### ⬆️Updates *(manual only)*
+> [!NOTE]  
+> Stack updates (unlike backups) can only be performed manually. This is by design.
+
+```bash
+backupdate -u -s "nginx" -d "/path/to/your/docker" -b "/path/to/your/backup"
+```
+
+<br>
+
 ### 🕑Scheduled backups
-You can create a cron job or use another tool like [Cronicle](https://github.com/jhuckaby/Cronicle) to run the following example script periodically to backup your docker compose stacks:
+You can create a cron job or use another tool like [Cronicle](https://github.com/jhuckaby/Cronicle) to run something similar to this example script. Which will periodically backup your Docker compose stacks automatically:
 
 ```bash
 #!/bin/bash
@@ -148,9 +156,11 @@ done
 rclone sync $BACKUP_DIR dropbox:backup
 ```
 
+<br>
+
 ### 🚫Backup blocklist
 
-By default, *backupdate* will backup all related named volumes and the stacks full working directory. You can use either `-l` or `--backup-blocklist` if you want to explicitly exclude certain volumes or paths from the backup.
+By default, *backupdate* will backup all related named volumes and the stacks full working directory. You can use `-l` or `--backup-blocklist` if you want to explicitly exclude certain volumes or paths from the backup.
 
 ```bash
 # ignore the plex_media volume and the /plex-cache directory
@@ -174,7 +184,8 @@ nginx_logs,\
 ```
 
 > [!TIP]
-> To avoid being recognised as a volume, paths must start with a `/`. Note that paths are interpreted as glob(3)-style wildcard patterns.
+> To avoid being recognised as a volume, paths must start with a forward slash `/`.
+> Note that paths are interpreted as glob(3)-style wildcard patterns.
 
 <br>
 
@@ -182,11 +193,15 @@ nginx_logs,\
 
 ### How do I restore the backup?
 
-Restoring backups isn't currently a process automated by the script. But as *backupdate* is just executing [standard Docker commands](https://github.com/hazzuk/compose-backupdate/blob/7b3d2edb05374e707af79c00d303e9988065e7f8/backupdate.sh#L347-L351), all you'd need to do is follow the official Docker guide on ['Restoring volumes from backups'](https://docs.docker.com/engine/storage/volumes/#restore-volume-from-a-backup).
+Restoring backups isn't currently a process automated by the script. But as *backupdate* is just executing [standard Docker commands](https://github.com/hazzuk/compose-backupdate/blob/7b3d2edb05374e707af79c00d303e9988065e7f8/backupdate.sh#L347-L351), just follow the official Docker guide on ["Restoring volumes from backups"](https://docs.docker.com/engine/storage/volumes/#restore-volume-from-a-backup).
 
 ### Do I need to stop containers before running backupdate?
 
-Nope, *backupdate* does that for you. All containers are stopped automatically before a backup to ensure the data saved is reliable.
+No, *backupdate* does that for you. All containers are stopped automatically before a backup to ensure the data saved is reliable.
+
+### Are there any differences between backups and updates?
+
+Yes, *backupdate* is focused on backups. However, it can be used to simultaneously backup and update containers in a Docker compose stack. Running update will remove (`docker compose down`) all containers, perform a standard backup, then request the containers be recreated (`docker compose up -d`). This is different to backups, where the containers are only stopped, backed up, and then restarted. As updating a Docker container requires the container to be recreated so as to use the newly pulled Docker image.
 
 ### How does it backup DB volumes?
 
