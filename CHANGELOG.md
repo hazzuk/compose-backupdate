@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.0 - 2024-12-04
+
+### Bug Fixes
+
+- fix(prune): only prune running stacks
+- fix: docker stop command wrong
+
+### Documentation
+
+- docs: create faq section
+- docs: update faq restore answer
+- docs: update arguments phrasing
+- docs(logo): add new logo
+- docs: update project name
+- docs: updates to the readme
+
+### Features
+
+- feat(restart): only restart running containers
+- feat(docker stop): improve error handling
+- feat(updates): remove/recreate all containers
+
+### Miscellaneous Tasks
+
+- chore: update copyright notice
+- chore(logo): remove previous version
+
+### Pull Requests
+
+- Merge pull request #17 from hazzuk/update-prune
+- Merge pull request #18 from hazzuk/fix-docker-stop
+- Merge pull request #19 from hazzuk/track-container-states
+
+### Refactor
+
+- refactor: script update function name
+
+### Styling
+
+- style: script console outputs
+
 ## 1.1.0 - 2024-10-07
 
 ### Bug Fixes
@@ -31,7 +72,7 @@ All notable changes to this project will be documented in this file.
 - chore: create full size project icon
 - chore: add comments for each section
 
-### Other (unconventional)
+### Pull Requests
 
 - Merge pull request #9 from hazzuk/backup-blocklist
 
@@ -98,6 +139,9 @@ All notable changes to this project will be documented in this file.
 ### Other (unconventional)
 
 - merge: #1 from hazzuk/long-options
+
+### Pull Requests
+
 - Merge pull request #2 from hazzuk/image-prune
 
 ### Refactor

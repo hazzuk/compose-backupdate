@@ -2,8 +2,32 @@
 # https://git-cliff.org/docs/configuration
 
 # template set as unconventional
-# `git cliff --tag 1.2.3 -o CHANGELOG.md`
-# `chore(release): prepare for v1.2.3`
+#
+# recognise pull requests:
+# commit_parsers = [
+#	{ message = "^Merge", group = "Pull Requests" },
+
+
+# github release steps
+
+# 1. add version number to code
+# 2. `git cliff --tag 1.2.3 -o CHANGELOG.md`
+# 3. `chore(release): prepare for v1.2.3`
+
+# githubrelease header
+
+# REMOVE
+# All notable changes to this project will be documented in this file.
+#
+# ADD
+# Note on changes 
+# 
+# AND
+# #### Install command
+# ```bash
+# bash -c 'curl -fsSL -o /bin/backupdate https://raw.githubusercontent.com/hazzuk/compose-backupdate/refs/heads/release/backupdate.sh && chmod +x /bin/backupdate'
+# ```
+
 
 # [remote.github]
 # owner = "hazzuk"
@@ -47,6 +71,7 @@ filter_unconventional = false
 split_commits = false
 # regex for parsing and grouping commits
 commit_parsers = [
+    { message = "^Merge", group = "Pull Requests" },
     { message = "^feat", group = "Features" },
     { message = "^fix", group = "Bug Fixes" },
     { message = "^doc", group = "Documentation" },
