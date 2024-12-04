@@ -1,7 +1,12 @@
+<p align="left">
+    <img src="https://github.com/hazzuk/compose-backupdate/blob/main/assets/backupdate.webp" width="120" height="120"/>
+</p>
+
 # compose-backupdate
-<img src="assets/header.webp">
 
 Bash script for creating scheduled backups, and performing (backed-up) guided updates on Docker compose stacks.
+
+<br>
 
 ## Why?
 Because I needed a tool that was...
