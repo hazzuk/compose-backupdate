@@ -270,7 +270,7 @@ docker_stack_stop() {
     local container_ids
     local container_names
 
-    echo "Stopping Docker stack: <$stack_name>"
+    echo "Stopping <$stack_name> containers"
     cd "$working_dir" || exit
 
     # for updates, require stack to be removed
@@ -279,7 +279,7 @@ docker_stack_stop() {
 
         # stop stack
         echo "- Update requested, removing all stack containers"
-        docker compose --progress "quiet" down
+        docker compose down
 
     else
         # check stack running, with at least one container running
@@ -320,11 +320,11 @@ docker_stack_stop() {
 }
 
 docker_stack_start() {
-    echo "Resuming Docker stack: <$stack_name>"
-
     # check stack was previously running
     if [ "$stack_running" = true ]; then
         cd "$working_dir" || exit
+
+        echo "Resuming <$stack_name> containers"
 
         # restart only previously running containers
         if [ -n "$running_container_ids" ]; then
@@ -335,7 +335,7 @@ docker_stack_start() {
             done
 
             # restart containers
-            echo
+            echo -e "\nInfo, restarted container IDs"
             # shellcheck disable=SC2086
             docker start $running_container_ids
         fi
@@ -344,7 +344,7 @@ docker_stack_start() {
         # for updates, stack should be recreated with updated images
         if [ "$update_requested" = true ]; then
             if confirm "Do you want to recreate <$stack_name>'s containers now?"; then
-                echo "Recreating Docker stack..."
+                echo "- Recreating Docker stack..."
                 docker compose up -d
 
                 # new stack running, can prune unused images
@@ -397,7 +397,7 @@ docker_stack_dir() {
 
 docker_stack_update() {
     if confirm "Are you sure you want to update <$stack_name>?"; then
-        echo "Updating Docker stack..."
+        echo "- Updating Docker stack..."
         docker compose pull
     else
         echo "- Update canceled"
